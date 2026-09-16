@@ -1,0 +1,23 @@
+import MdxLayout from "@/components/mdx-layout";
+
+# Precalculus
+
+## Mathematical Terminology
+- A __proposition__ is a statement that can be meaningfully assigned the terms _true_ or _false_.
+    - ~example~. The sum of the measures of the interior angles of any plane triangle is ${180 \degree}$ (true).
+    - ~example~. ${2 + 1 = 5}$ (false).
+    - ~example~. ${x + 9 = 11}$ (Truth cannot be determined until ${x}$ is given a specific value).
+- An __expression__ is a combination of symbols that represents some object or value.
+    - ~example~. ${x}$ is an expression, often used as a variable.
+    - ~example~. ${a + b}$ is an _arithmetic expression_. 
+- An __axiom__ is a statement that is accepted as true without proof. Axioms are also called __postulates__.
+- A __definition__ is a statement that specifies exactly what a mathematical term, object, or concept means. Like an axiom, it does not require proof.
+    - Some words in mathematics are _undefined_ or _defined loosely_. For example, one might define a _point_ as "an infinitely small dot." But what is a dot? And what does it mean to be infinitely small? We can play this game over and over, defining words with words that need definitions comprised of words that need definitions comprised of words that need definitions comprised of words, ad nauseum. We avoid this endless staircase by simply starting with words that are left either undefined or defined loosely.  
+- A __theorem__ is a statement that proven to be true using logical reasoning.
+- A __lemma__ is a statement that is proven to be true using logical reasoning, with the specific purpose of proving a larger, more important theorem. Lemmas and theorems are largely the same; they're only difference is purpose: A theorem is important in its own right, a lemma is a proven statement used to help prove another statement. 
+- A __conjecture__ is a statement that is believed to be true, but has not yet been proved.
+
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}
