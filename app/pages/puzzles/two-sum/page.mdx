@@ -1,0 +1,75 @@
+import MdxLayout from "@/components/mdx-layout";
+
+# Two Sum
+
+## Problem
+You're given an array of integers ${N}$ and an integer ${t.}$ Return two indices of the two numbers such that they add up to ${t.}$ You may assume that each input of ${N}$ and ${t}$ yield exactly one solution. You cannot use the same element twice. The answer can be returned in any order. 
+
+## Examples
+${N = (2,7,11,15);}$ ${t = 9.}$ Answer: ${(0,1),}$ since the sum of the ${0^{\text{th}}}$ element (${2}$) and the ${1^{\text{st}}}$ element (${7}$) is ${9}$ ${(2 + 7 = 9).}$ 
+
+## Solution
+The simplest and most straightforward solution is brute-force with nested loops:
+
+<Procedure>
+
+1. __function__ ${f}$`(`${N}$, ${t}$`)` `:=`
+   1. __let__ ${i}$ `:=` ${0}$
+   2. __let__ ${j}$ `:=` ${0}$
+   3. __while__ ${i}$ `<` ${\text{length}}$`(`${N}$`)` `:`
+      1. __let__ ${a}$ `:=` ${N}$`[`${i}$`]`
+      2. ${j}$ `:=` ${i}$ `+` ${1}$
+      3. __while__ ${j}$ `<` ${\text{length}}$`(`${N}$`)` `:`
+         1. __let__ ${b}$ `:=` ${N}$`[`${j}$`]`
+         2. __if__ `(`${a}$ `+` ${b}$ `=` ${t}$`)`: __return__ `(`${i,j}$`)`
+         3. ${j}$ `:=` ${j}$ `+` ${1}$
+      4. ${i}$ `:=` ${i}$ `+` ${1}$
+   4. __return__ `(`${i,j}$`)` 
+
+</Procedure>
+
+To illustrate, say we're given the following sequence: 
+
+$$
+    (3,1,5,7)
+$$
+
+with a target of ${6.}$ We start with the first element, ${3.}$ Then we run through the rest of the list, adding ${3}$ to each number, and check if it sums to ${6.}$ The first loop, we get no success:
+
+| ${a}$ | ${b}$ | ${a + b}$ | `=` ${t}$`?`          |
+| ----- | ----- | --------- | --------------------- |
+| ${3}$ | ${1}$ | ${4}$     | ${\color{red}\times}$ |
+| ${3}$ | ${5}$ | ${8}$     | ${\color{red}\times}$ |
+| ${3}$ | ${7}$ | ${10}$    | ${\color{red}\times}$ |
+
+The element ${3}$ didn't work with any other number, so we move to the next element ${1,}$ and run through the rest of the list (addition is commutative, so we don't need to check ${1 + 3}$; we already checked ${3 + 1}$).
+
+| ${a}$ | ${b}$ | ${a + b}$ | `=` ${t}$`?`                |
+| ----- | ----- | --------- | --------------------------- |
+| ${1}$ | ${5}$ | ${6}$     | ${\color{green}\checkmark}$ |
+
+Overall, this is a clean and easy solution to read. In practice, with how fast modern processors work, I'd use this solution and call it a day. For academic purposes, however, this is slow. While memory usage is constant at ${O(1),}$ the nested loop leads to a run time of ${O(n^2).}$
+
+A faster solution uses a little creativity with a hashmap:
+
+<Procedure>
+
+1. __function__ ${f}$`(`${N,}$ ${t}$`)` `:=`
+   1. __let__ ${map}$ `:=` `{}` _A hashmap mapping ${\Z \mapsto \Z.}$_
+   2. __let__ ${i}$ `:=` ${0}$
+   3. __while__ ${i}$ `<` ${\text{length}}$`(`${N}$`):`
+      1. __let__ ${complement}$ `:=` ${t}$ `-` ${N}$`[`${i}$`]`
+      2. __if__ ${map}$`[`${complement}$`]` ${\neq}$ ${\varnothing}$:
+         1. __return__ `(`${complement,}$ ${i}$`)`
+      3. ${map}$[${N}$`[`${i}$`]`] `:=` ${i}$
+      4. ${i}$ `:=` ${i}$ `+` ${1}$
+   4. __return__ `(`${0,0}$`)`
+
+</Procedure>
+
+
+
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}

@@ -1,0 +1,578 @@
+import MdxLayout from "@/components/mdx-layout";
+import { SINGLE_ELEMENT_SET, SUBSET_DEMO, UNIT_CIRCLE, ONE_TO_ONE_FUNCTION, MANY_TO_ONE_FUNCTION, ONTO_FUNCTION, REAL_LINE } from "@/components/math_figures.tsx"
+
+# Foundational Mathematics
+This is a collection of notes on foundational mathematical concepts, covering topics on speaking mathematically, fundamental proof techniques, basic logic, and the usual subjects one might find in a precalculus course.
+
+<TOC>
+
+- [Mathematical Terminology](#mathematical-terminology)
+- [Sets](#sets)
+  - [Set-builder Notation](#set-builder-notation)
+  - [Subsets](#subsets)
+  - [Ordered Pairs](#ordered-pairs)
+  - [Ordered 𝑛-tuples](#ordered-𝑛-tuples)
+  - [Cartesian Products](#cartesian-products)
+- [Relations](#relations)
+  - [Inequalities](#inequalities)
+  - [Functions](#functions)
+    - [One-to-one Functions](#one-to-one-functions)
+    - [Many-to-one Functions](#many-to-one-functions)
+    - [Onto Functions](#onto-functions)
+  - [Number Sets](#number-sets)
+    - [The Natural Numbers](#the-natural-numbers)
+    - [The Integers](#the-integers)
+    - [The Rationals](#the-rationals)
+    - [Real Algebraic Numbers](#real-algebraic-numbers)
+    - [Real Numbers](#real-numbers)
+    - [Imaginary Numbers](#imaginary-numbers)
+    - [Complex Numbers](#complex-numbers)
+    - [Algebraic Numbers](#algebraic-numbers)
+    - [Transcendental Numbers](#transcendental-numbers)
+  - [Intervals](#intervals)
+  - [Absolute Value](#absolute-value)
+- [Equations](#equations)
+  - [Linear Equations in One Variable](#linear-equations-in-one-variable)
+  - [Quadratic Equations](#quadratic-equations)
+    - [Solving Quadratic Equations](#solving-quadratic-equations)
+    - [The Quadratic Formula](#the-quadratic-formula)
+  - [Polynomial Equations](#polynomial-equations)
+- [Foundational Logic](#foundational-logic)
+
+</TOC>
+
+## Mathematical Terminology
+In these notes, a __statement__ is a declarative sentence. 
+
+A __variable__ is a symbol that represents a mathematical object or value that can be unknown, unspecified, or allowed to vary; i.e., a placeholder. The set of possible values a variable can take is called the variable's __domain__. 
+
+A __constant__ is a symbol that represents a mathematical object or value that is known, specified, and invariable.
+
+An __expression__ is a combination of symbols that represents some object or value.
+
+~example~. ${x}$ is an expression, often used as a variable.
+
+~example~. ${a ~\plus~ b}$ is an _arithmetic expression_. 
+
+A __proposition__ is a statement that can be meaningfully assigned the terms _true_ or _false_.
+
+~example~. The sum of the measures of the interior angles of any plane triangle is ${180 \degree.}$ This is a proposition, since it can be assigned the value _true_.
+
+~example~. ${2 ~\plus~ 1 ~\equals~ 5}$ is a proposition. It can be assigned the value _false_.
+
+~example~. ${x ~\plus~ 9 ~\equals~ 11}$ is _not_ a proposition, since truth cannot be determined until ${x}$ is given a specific value.
+
+An __axiom__ is a proposition that is accepted as true without proof. Axioms are also called __postulates__.
+
+A __definition__ is a statement that specifies exactly what a mathematical term, object, or concept means. Like an axiom, it does not require proof. Some words in mathematics are _undefined_ or _defined loosely_. For example, one might define a _point_ as "an infinitely small dot." But what is a dot? And what does it mean to be infinitely small? We can play this game over and over, defining words with words that need definitions comprised of words that need definitions comprised of words that need definitions comprised of words, ad nauseum. We avoid this endless staircase by simply starting with words that are left either undefined or defined loosely.  
+
+A __theorem__ is a proposition that's proven to be true using logical reasoning.
+
+A __lemma__ is a proposition that's proven to be true using logical reasoning, with the specific purpose of proving a larger, more important theorem. Lemmas and theorems are largely the same; they're only difference is purpose: A theorem is important in its own right, a lemma is a proven statement used to help prove another statement. 
+
+A __conjecture__ is a proposition that is believed to be true, but has not yet been proved.
+
+## Sets
+A __set__ is a collection of things. Each thing in a set is called an __element__ of that set. If ${S}$ is a set and ${x}$ is something, then the notation
+
+$$
+    x \in S
+$$
+
+means "${x}$ is an element of ${S.}$" One can visualize this as a single object in some box:
+
+<SINGLE_ELEMENT_SET/>
+
+If the elements in a set are finite, we may specify the elements in __set roster notation__. For example, a set containing ${1,}$ ${2,}$ and ${3}$:
+
+$$
+    \set{1,2,3}.
+$$
+
+For large sets with elements of a discernible pattern, we may use ellipses. For example, the set of integers from ${1}$ through ${100}$:
+
+$$
+    \set{1,2,3,\ldots,100}.
+$$
+
+Sets in mathematics are subject to many axioms. Here's one such axiom:
+
+<Block>
+
+__Axiom of Extension__. Two sets are equal if and only if they contain exactly the same elements.
+
+</Block>
+
+This axiom tells us that a set is completely determined by its elements. Thus, the following sets, ${S,}$ ${T,}$ and ${U,}$ are the same:
+
+<Cols of={3}>
+
+$$
+    S = \set{a,b,c}
+$$
+
+$$
+    T = \set{c,a,b}
+$$
+
+$$
+    U = \set{c,c,b,a}
+$$
+
+</Cols>
+
+Thus, when we distinguish one set from another: (1) the order of the elements does not matter, and (2) the fact that an element appears more than once in a set is irrelevant. In other words:
+
+1. sets have no inherent order, and
+2. sets do not contain "duplicate elements."
+
+### Set-builder Notation
+Suppose ${S}$ is a set and ${P(x)}$ is some property that may or may not be true for the elements in ${S}$. The set of all elements of ${S}$ for which ${P(x)}$ is true is denoted as follows:
+
+$$
+    \set{x \in S : P(x)}.
+$$
+
+~example~. The set ${\set{x \in \R : 0 ~\lt~ x ~\lt~ 1}}$ is the set of all real numbers greater than ${0}$ and less than ${1.}$ 
+
+### Subsets
+Suppose ${A}$ and ${B}$ are sets, then ${A}$ is a __subset__ of ${B}$ if, and only if, every element of ${A}$ is also an element ${B.}$ If ${A}$ is a subset of ${B,}$ we write:
+
+$$
+    A \subseteq B.
+$$
+
+Given sets ${A}$ and ${B,}$ if there is at least one element of ${A}$ that is not an element of ${B,}$ then ${A}$ is not a subset of ${B.}$ Symbolically: 
+
+$$
+    A \not\subseteq B.
+$$
+
+If every element of ${A}$ is an element of ${B,}$ but not every element of ${B}$ is an element of ${A}$ (as in the previous diagram), we say that ${A}$ is a __strict subset__ or __proper subset__ of ${B.}$ Symbolically:  
+
+$$
+    A \subset B.
+$$
+
+Visually:
+
+<SUBSET_DEMO/>
+
+### Ordered Pairs
+Given ${a}$ and ${b,}$ the symbol ${(a,b)}$ denotes the __ordered pair__ ${a}$ and ${b}$ with the following specifications:   
+
+1. ${a}$ is the first element, and
+2. ${b}$ is the second element
+
+of the pair. Two ordered pairs ${(a,b)}$ and ${(c,d)}$ are equal if, and only if, ${a ~\equals~ c}$ and ${b ~\equals~ d.}$
+
+### Ordered 𝑛-tuples
+Let ${n}$ be a positive integer and let ${x_1, x_2, \ldots, x_n}$ be (not necessarily distinct) elements. The __ordered ${n}$-tuple__ ${(x_1, x_2, \ldots, x_n)}$ comprises ${x_1, x_2, \ldots, x_n}$ together with the ordering: first ${x_1,}$ second ${x_2,}$ and so on up to ${x_n.}$ An ordered ${2}$-tuple is called an _ordered pair_. An ordered ${3}$-tuple is called an _ordered triple_. 
+
+Two ordered ${n}$-tuples ${(x_1, x_2, \ldots, x_n)}$ and ${(y_1, y_2, \ldots, y_n)}$ are equal if, and only if, ${x_1 ~\equals~ y_1,}$ ${x_2 ~\equals~ y_2,}$ ${\ldots,}$ ${x_n ~\equals~ y_n.}$
+
+### Cartesian Products
+Say we have ${n}$ number of sets, ${A_1, A_2, \ldots, A_n.}$ The set of all ordered ${n}$-tuples ${(a_1, a_2, \ldots, a_n)}$ where ${a_1 \in A_1,}$ ${a_2 \in A_2,}$ ${\ldots,}$ ${a_n \in A_n}$ is called the __Certesian product__ of ${A_1,}$ ${A_2,}$ ${\ldots,}$ ${A_n,}$ denoted: 
+
+$$
+    A_1 \times A_2 \times \ldots \times A_n.
+$$
+
+For example, suppose ${A = \set{x,y,z}}$ and ${B = \set{1,2,3}.}$ Then:
+
+<table>
+    <thead>
+        <tr>
+            <th></th>
+            <th> ${1}$ </th>
+            <th> ${2}$ </th>
+            <th> ${3}$ </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>$x$</td>
+            <td className="grey-cell">$(1,x)$</td>
+            <td className="grey-cell">$(2,x)$</td>
+            <td className="grey-cell">$(3,x)$</td>
+        </tr>
+        <tr>
+            <td>$y$</td>
+            <td className="grey-cell">$(1,y)$</td>
+            <td className="grey-cell">$(2,y)$</td>
+            <td className="grey-cell">$(3,y)$</td>
+        </tr>
+        <tr>
+            <td>$x$</td>
+            <td className="grey-cell">$(1,z)$</td>
+            <td className="grey-cell">$(2,z)$</td>
+            <td className="grey-cell">$(3,z)$</td>
+        </tr>
+    </tbody>
+</table>
+
+## Relations
+We have two sets, ${A}$ and ${B.}$ A relation from ${A}$ to ${B}$ is a subset of ${A \times B.}$ Let's say we have a relation from ${A}$ to ${B,}$ denoted ${\relate.}$ For a pair ${(x,y) \in \relate,}$ we say that ${x}$ is related to ${y}$ by ${\relate,}$ and write ${x ~\relate~ y.}$ If ${(x,y) \notin \relate,}$ and write ${x ~\nrelate~ y.}$ The set ${A}$ is called the __domain__ of ${\relate,}$ and the set ${B}$ is called the __codomain__ of ${\relate.}$ Notationally:
+
+$$
+    \dom{\relate} ~\equals~ A, \\
+    \codom{\relate} ~\equals~ B. \\
+$$
+
+~example~. The symbol ${\lt}$ is a relation from ${\R}$ to ${\R.}$ The pair ${(0,1)}$ is in the relation, since ${0 ~\lt~ 1.}$
+
+~example~. The equation ${x^2 ~\plus~ y^2 = 1}$ is a relation in ${\R \times \R.}$ We can visualize this relation:
+
+<UNIT_CIRCLE/>
+
+### Inequalities
+We use the following notations to denote some common relations between real numbers.
+
+<table>
+    <thead>
+        <tr>
+            <th>Notation</th>
+            <th>Definition</th>
+            <th>Example</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>${a ~\lt~ b}$</td>
+            <td>${a}$ is less than ${b.}$</td>
+            <td>${0 ~\lt~ 1}$</td>
+        </tr>
+        <tr>
+            <td>${a ~\gt~ b}$</td>
+            <td>${a}$ is greater than ${b.}$</td>
+            <td>${1 ~\gt~ 0}$</td>
+        </tr>
+        <tr>
+            <td>${a ~\lte~ b}$</td>
+            <td>${a}$ is less than or equal to ${b.}$</td>
+            <td>${1 ~\lte~ 1, 0 ~\lte~ 1}$</td>
+        </tr>
+        <tr>
+            <td>${a ~\gte~ b}$</td>
+            <td>${a}$ is greater than or equal to ${b.}$</td>
+            <td>${0 ~\gte~ 0,}$ ${1 ~\gte~ 0.}$</td>
+        </tr>
+    </tbody>
+</table>
+
+### Functions
+Suppose we have two sets, ${A}$ and ${B.}$ A __function__ ${f}$ is a relation from ${A}$ to ${B}$ that satisfies two conditions:
+
+1. For every ${x \in A,}$ there is a ${y \in B}$ such that ${(x,y) \in f.}$
+2. For all elements ${x \in A}$ and ${y,z \in B,}$ if ${(x,y) \in f}$ and ${(x,z) \in f,}$ then ${y = z.}$
+
+Less formally: (1) Every element of ${A}$ is the first element of an ordered pair of ${f;}$ (2) No two distinct ordered pairs in ${f}$ have the same first element. If we think of functions as machines that take inputs and yield outputs: (1) Every element of ${A}$ is an input of ${f;}$ (2) no two inputs of ${f}$ have the same output. 
+
+A function ${f}$ from ${A}$ to ${B,}$ we can denote the function ${f}$ with the following:   
+
+$$
+    f: A \to B.
+$$
+
+There are several types of functions:
+
+1. One-to-one functions.
+2. Many-to-one functions.
+3. Onto functions.
+4. Into functions.
+
+#### One-to-one Functions
+We have a function ${f: A \to B.}$ We say that ${f}$ is a __one-to-one function__ (also called an __injective function__ or an __injection__), if every element of ${A}$ yields, or maps to, a distinct element of ${B.}$
+
+
+<ONE_TO_ONE_FUNCTION/>
+
+#### Many-to-one Functions
+Given a function ${f: A \to B,}$ we say that ${f}$ is a __many-to-one function__ if two or more distinct elements of ${A}$ yield, or map to, the exact same element of ${B.}$  
+
+<MANY_TO_ONE_FUNCTION/>
+
+#### Onto Functions
+Given a function ${f: A \to B,}$ we call ${f}$ an __onto function__ if every element of ${B}$ (the codomain) is yielded by, or mapped from, an element of ${A.}$ An onto function is also called a __surjective function__ or __surjection__. 
+
+<ONTO_FUNCTION/>
+
+In the diagram above, all the elements of the codomain are yielded by an element of the domain. It also so happens to be an injective function. This is purely coincidence—not all injective functions are surjective, and not all surjective functions are injective. Consider a function ${f: \Z \to \R.}$ Because ${\R}$ is a much larger set than ${\N,}$ not every element of ${\R}$ is yielded by an element of ${\N.}$  
+
+### Number Sets
+Some sets in mathematics appear so frequently that we give them special symbols.
+
+| Symbol                    | Set                                |
+| ------------------------- | ---------------------------------- |
+| ${\R}$                    | The set of real numbers.           |
+| ${\N}$                    | The set of natural numbers.        |
+| ${\Z}$                    | The set of integers.               |
+| ${\Z^{\plus}}$            | The set of positive integers.      |
+| ${\Z^\minus}$             | The set of negative integers.      |
+| ${\mathbb{Q}}$            | The set of rational numbers.       |
+| ${\mathbb{P}}$            | The set of prime numbers.          |
+| ${\mathbb{I}}$            | The set of imaginary numbers.      |
+| ${\mathbb{C}}$            | The set of complex numbers.        |
+| ${\mathbb{A}}$            | The set of algebraic numbers.      |
+| ${\mathbb{A}_{\text{R}}}$ | The set of real algebraic numbers. |
+
+#### The Natural Numbers
+The natural numbers are the positive integers and ${0.}$ I.e.,
+
+$$
+    \set{0,1,2,3,\ldots}.
+$$
+
+The set of all natural numbers is denoted with the block letter ${\N.}$ 
+
+#### The Integers
+The integers is the set of all natural numbers and the negatives of the positive integers.
+
+$$
+    \set{\ldots, \minus 3, \minus 2, \minus 1, 0, 1, 2, 3, \ldots}.
+$$
+
+We denote the set of integers with the block letter ${\Z}$ (from the German word _zahl_, meaning "number").
+
+#### The Rationals
+The set of rationals comprises the ratios of the integer (i.e., _fractions_). More formally, a __rational number__ is a number of the form
+
+$$
+    \dfrac{p}{q},
+$$
+
+where ${p}$ and ${q}$ are integers. We denote the set of rational numbers with the block letter ${\mathbb{Q}}$ (from the word "quotient").
+
+#### Real Algebraic Numbers
+Any real number that is a solution (also called a _root_) to a non-zero polynomial equation with rational coefficients is called a __real algebraic number__. For example, the polynomial equation
+
+$$
+    4x ~\minus~ 3 = 0
+$$
+
+has the solution ${3/4.}$ Thus, ${3/4}$ is a real algebraic number. The set of all such real numbers is called the set of real algebraic numbers, denoted ${\mathbb{A}_{\text{R}}.}$  
+
+#### Real Numbers
+The union of the set of rational numbers and irrational numbers is called the set of __real numbers__. We denote the set of real numbers with the symbol ${\R.}$ For any two real numbers, exactly one of these rules is true:
+
+1. ${a ~\lt~ b,}$
+2. ${a ~\equals~ b,}$ or
+3. ${a ~\gt~ b.}$
+
+Moreover, the property of transitivity holds: If ${a ~\lt~ b,}$ and ${b ~\lt~ c,}$ then ${a ~\lt~ c.}$
+
+From these facts, it follows that the real numbers can be ordered, from least to greatest. A convenient way to visualize this ordering is to place the numbers on a continuous line. We call this line the __real line__. 
+
+<REAL_LINE/>
+
+#### Imaginary Numbers
+An __imaginary number__ is a number whose square is negative. That is, a number of the form 
+
+$$
+    r\text{i},
+$$
+
+where ${r}$ is a real number and ${i = \sqrt{\minus 1}.}$ 
+
+#### Complex Numbers
+A __complex number__ is a number of the form
+
+$$
+    a ~\plus~ b\text{i},
+$$
+
+where ${a}$ and ${b}$ are real numbers.
+
+#### Algebraic Numbers
+A root to a polynomial equation with integer coefficients is called an __algebraic number__. Algebraic numbers can be real, imaginary, or complex. 
+
+~example~. ${x^2 ~\minus~ 2 = 0}$ has the roots ${\sqrt{2}}$ and ${\minus\sqrt{2}}$ (real).
+
+~example~. ${x^2 ~\plus~ 4 = 0}$ has the roots ${2 \text{i}}$ and ${\minus 2\text{i}}$ (imaginary).
+
+~example~. ${x^2 ~\minus~ 4x ~\plus~ 7 = 0}$ has the roots ${2 \pm i \sqrt{3}}$ (complex).
+
+The set of all algebraic numbers is called the _algebraics_, denoted ${\mathbb{A}.}$
+
+#### Transcendental Numbers
+A __transcendental number__ is any real or complex number that is not the root of any non-zero polynomial equation with rational coefficients. That is, any number that is not algebraic. We denote the set of all transcendental numbers with the symbol ${\mathbb{T}.}$ Famous examples of transcendental numbers include ${pi}$ (pi), ${e}$ (Euler's number), and ${\Gamma}$ (Euler's gamma constant).
+
+A few characteristics of the transcendental numbers:
+
+1. All transcendental numbers are irrational, but not all irrational numbers are transcendental.
+2. Proving that transcendental numbers exist is straightforward with set theory, but proving that a specific number is transcendental is famously difficult (it took centuries to prove that ${\pi}$ is transcendental).
+
+### Intervals
+Given two real numbers ${a}$ and ${b,}$ an __interval__ is the set of real numbers containing every real number between ${a}$ and ${b}$ (the set must be specified as to whether ${a}$ or ${b}$ are included). We use brackets to denote intervals:   
+
+| Notation                     | Meaning                                                      |
+| ---------------------------- | ------------------------------------------------------------ |
+| ${\lbracket a, b \rbracket}$ | ${\set{x \in \R, a \in \R, b \in \R : a ~\lte~ x ~\lte~ b}}$ |
+| ${\lpar a, b \rpar}$         | ${\set{x \in \R, a \in \R, b \in \R : a ~\lt~ x ~\lt~ b}}$   |
+| ${\lbracket a, b \rpar}$     | ${\set{x \in \R, a \in \R, b \in \R : a ~\lte~ x ~\lt~ b}}$  |
+| ${\lpar a, b \rbracket}$     | ${\set{x \in \R, a \in \R, b \in \R : a ~\lt~ x ~\lte~ b}}$  |
+
+### Absolute Value
+The absolute value of a real number ${x,}$ denoted ${\abs{x}}$ is the distance from ${x}$ to the origin. Algebraically: 
+
+$$
+    \abs{x} \equals \begin{cases}
+        x &\text{if } ~ x ~\gte~ 0 \\
+        -x &\text{if } ~ x ~\lt~ 0.
+    \end{cases}
+$$
+
+Some useful properties of absolute value:
+
+1. For all real numbers, the following hold:
+    1. ${\abs{x} ~\gte~ 0}$
+    2. ${x ~\lte~ \abs{x}}$
+    3. ${-x ~\lte~ x}$
+    4. ${\abs{x}^2 = x^2}$
+    5. ${\sqrt{x^2} = \abs{x}}$
+2. For all ${a,b \in \R,}$
+    1. ${\abs{ab} = \abs{a}\abs{b}}$
+    2. ${\abs{\dfrac{a}{b}} = \dfrac{\abs{a}}{\abs{b}}}$ (${b ~\nequals~ 0.}$)
+    3. ${\abs{a + b} ~\lte~ \abs{a} + \abs{b}}$ ${\lpar}$this is called the __triangle inequality__${\rpar}$.
+
+For real numbers ${a}$ and ${b,}$ the __distance__ between ${a}$ and ${b}$ is ${\abs{a - b}}$ ${\lpar}$or ${\abs{b - a},}$ since ${\abs{a - b} = \abs{b - a} \rpar.}$
+
+## Equations
+An __equation__ is a statement asserting that two expressions are equal. It has the form
+
+$$
+    e_1 ~\equals~ e_2,
+$$
+
+where ${e_1}$ and ${e_2}$ are expressions.
+
+
+### Linear Equations in One Variable
+A __linear equation in one variable__ is an equation that can be written in the form
+
+$$
+    ax ~\plus~ b ~\equals~ 0,
+$$
+
+where ${a}$ and ${b}$ are real numbers and ${a ~\nequals~ b.}$
+
+~example~. The following are all examples of linear equations in one variable:
+
+$$
+    \begin{aligned}
+        & 2x ~\equals~ 10 \\[1.5em]
+        & 3m ~\plus~ 1 ~\equals~ 2 \\[1.5em]
+        & \dfrac{y}{2} ~\equals~ \dfrac{y}{3} ~\plus~ 1
+    \end{aligned}
+$$
+
+In the examples above, none of these equations are true or false until we replace the variable with a number. If that number makes the equation true ${\lparen}$i.e., __satisfies__ the equation${\rparen}$, then we call that number a __root__ or __solution__ of the equation.
+
+Equations that become true statements for _all_ values in the variable's domain are called __identities__.
+
+~example~. The following are all identities:
+
+$$
+    \begin{aligned}
+        & x^2 ~\minus~ 9 ~\equals~ (x ~\minus~ 3)(x ~\plus~ 3) \\[1.5em]
+        & \dfrac{4x^2}{x} ~\equals~ 4x
+    \end{aligned}
+$$
+
+### Quadratic Equations
+A __quadratic equation__ is an equation in one variable that can be written in the form
+
+$$
+    ax^2 ~\plus~ bx ~\plus~ c ~\equals~ 0,
+$$
+
+where ${a,}$ ${b,}$ and ${c}$ are real numbers and ${a ~\nequals~ 0.}$
+
+#### Solving Quadratic Equations
+A straightforward method for solving quadratic is to use the zero-product property of real numbers:
+
+$$
+    pq ~\equals~ 0
+$$
+
+if and only if ${p ~\equals~ 0}$ or ${q ~\equals~ 0.}$
+
+<Example>
+
+Solve ${8x^2 ~\minus~ 3 = 10x.}$
+
+First, we rewrite the equation so the right-hand side is zero.
+
+$$
+    8x^2 ~\minus~ 10x ~\minus~ 3 = 0.
+$$
+
+Now factor:
+
+$$
+    \lparen 2x ~\minus~ 3 \rparen \lparen 4x ~\plus~ 1 \rparen = 0.
+$$
+
+By the zero-product property of real numbers, either or both of the parenthesized expressions must equal zero. This allows us to equation either expression to ${0}$ then solve for ${x.}$ First: 
+
+$$
+\begin{aligned}
+    2x ~\minus~ 3 &= 0 \\
+    2x &= 3 \\
+    x &= \dfrac{3}{2}
+\end{aligned}
+$$
+
+Next:
+
+$$
+\begin{aligned}
+    4x ~\plus~ 1 = 0 \\
+    4x = \minus 1 \\
+    x = \minus \dfrac{1}{4}
+\end{aligned}
+$$
+
+Thus, we have the roots to the equation:
+
+$$
+    \setof{\dfrac{3}{2},~ \minus \dfrac{1}{4}}.
+$$
+
+</Example>
+
+#### The Quadratic Formula
+The solutions of the quadratic equation ${ax^2 ~\plus~ bx ~\plus~ c ~\equals~ 0,}$ where ${a ~\nequals~ 0,}$ are given by
+
+$$
+    x ~\equals~ \dfrac{\minus b \pm \sqrt{b^2 ~\minus 4ac}}{2a}.
+$$
+
+### Polynomial Equations
+A __polynomial equation__ in one variable is an equation of the form
+
+$$
+    a_nx^n ~\plus~ a_{n-1}x^{n-1} ~\plus~ \ldots ~ \plus ~ a_1x ~\plus~ a_0 = 0.
+$$
+
+For each ${a_ix^j,}$ ${a_i}$ is a real number constant and ${j}$ is a nonnegative integer. If ${a_n}$ is not zero, the __degree__ of the polynomial is the largest exponent of the variable that appears in the equation.
+
+## Foundational Logic
+A __universal statement__ is a proposition that asserts a certain property or characteristic is true for all things in a given collection.
+
+~example~. All positive numbers are greater than zero.
+
+A __conditional statement__ is a proposition that asserts if some proposition is true, then another proposition must also be true.
+
+~example~. If ${378}$ is divisible by ${18,}$ then ${378}$ is divisible by ${6.}$
+
+An __existential statement__ is a proposition that asserts that at least one thing exists for which a property or condition is true.
+
+~example~. There exists an integer ${x}$ such that ${x^2 = 4.}$
+
+A __universal conditional statement__ is a proposition that asserts: (1) for all things in a given collection, (2) if some proposition is true, then (3) another proposition is true.
+
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}

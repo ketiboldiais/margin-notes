@@ -1,0 +1,26 @@
+import MdxLayout from "@/components/mdx-layout";
+import {LINKED_LIST_EXAMPLE_1, LINKED_LIST_EXAMPLE_1_RESULT} from "@/components/puzzles_figures.tsx";
+
+# Add Two Numbers
+## Problem
+You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.
+
+## Example
+Suppose the two linked lists are as follows.
+
+<LINKED_LIST_EXAMPLE_1/>
+
+Since the digits are stored in reverse order, the numbers are ${342}$ and ${564.}$ We add these two numbers:
+
+$$
+    342 + 465 = 807. 
+$$
+
+The output must be a list, with the digits in reverse order:
+
+<LINKED_LIST_EXAMPLE_1_RESULT/>
+
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}

@@ -1,4 +1,7 @@
+'use client';
+
 import Image from "next/image";
+import { ReactNode } from "react";
 
 export const Img = ({
   url,
@@ -12,7 +15,7 @@ export const Img = ({
   alt: string;
   width?: number;
   height?: number;
-  caption?: string;
+  caption?: string | ReactNode;
 }) => (
   <figure
     style={{

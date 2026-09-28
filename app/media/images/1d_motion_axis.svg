@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="766.86328"
+   height="294.6958"
+   viewBox="0 0 766.86328 294.6958"
+   version="1.1"
+   id="svg22"
+   sodipodi:docname="positive_negative_direction_cmu_serif.svg"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview22"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="0.6169299"
+     inkscape:cx="212.34179"
+     inkscape:cy="117.5174"
+     inkscape:window-width="1512"
+     inkscape:window-height="916"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg22">
+    <inkscape:grid
+       id="grid22"
+       units="px"
+       originx="-30"
+       originy="-70.164551"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14902"
+       empspacing="5"
+       enabled="true"
+       visible="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs6">
+    <linearGradient
+       id="pos"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="0">
+      <stop
+         offset="0"
+         stop-color="#f8e5d8"
+         id="stop1" />
+      <stop
+         offset="0.55"
+         stop-color="#ee7455"
+         id="stop2" />
+      <stop
+         offset="1"
+         stop-color="#e6322a"
+         id="stop3" />
+    </linearGradient>
+    <linearGradient
+       id="neg"
+       x1="1"
+       y1="0"
+       x2="0"
+       y2="0">
+      <stop
+         offset="0"
+         stop-color="#eee9f0"
+         id="stop4" />
+      <stop
+         offset="0.55"
+         stop-color="#9b6cac"
+         id="stop5" />
+      <stop
+         offset="1"
+         stop-color="#8050a0"
+         id="stop6" />
+    </linearGradient>
+    <style
+       id="style6">
+      text {
+        font-family: &quot;CMU Serif&quot;, &quot;Computer Modern Serif&quot;, serif;
+        fill: #171717;
+      }
+      .label { font-size: 43px; }
+      .ticklabel { font-size: 42px; }
+      .axislabel { font-size: 42px; font-style: italic; }
+      .unit { font-style: normal; }
+      .axis { stroke: #202020; stroke-width: 2; }
+      .tick { stroke: #202020; stroke-width: 1.7; }
+    </style>
+  </defs>
+  <text
+     x="330"
+     y="29.835449"
+     text-anchor="middle"
+     class="label"
+     id="text6">Positive direction</text>
+  <!-- positive arrow -->
+  <!-- negative arrow -->
+  <text
+     x="325"
+     y="95.835449"
+     text-anchor="middle"
+     class="label"
+     id="text7">Negative direction</text>
+  <!-- x axis -->
+  <line
+     x1="0"
+     y1="138.83545"
+     x2="657"
+     y2="138.83545"
+     class="axis"
+     id="line7" />
+  <!-- ticks -->
+  <g
+     class="tick"
+     id="g14"
+     transform="translate(-30,-70.164551)">
+    <line
+       x1="56"
+       y1="229"
+       x2="56"
+       y2="208"
+       id="line8" />
+    <line
+       x1="158"
+       y1="229"
+       x2="158"
+       y2="208"
+       id="line9" />
+    <line
+       x1="260"
+       y1="229"
+       x2="260"
+       y2="208"
+       id="line10" />
+    <line
+       x1="362"
+       y1="229"
+       x2="362"
+       y2="208"
+       id="line11" />
+    <line
+       x1="464"
+       y1="229"
+       x2="464"
+       y2="208"
+       id="line12" />
+    <line
+       x1="566"
+       y1="229"
+       x2="566"
+       y2="208"
+       id="line13" />
+    <line
+       x1="668"
+       y1="229"
+       x2="668"
+       y2="208"
+       id="line14" />
+  </g>
+  <!-- tick labels -->
+  <g
+     class="ticklabel"
+     text-anchor="middle"
+     id="g20"
+     transform="translate(-30,-70.164551)">
+    <text
+       x="56"
+       y="277"
+       id="text14">−3</text>
+    <text
+       x="158"
+       y="277"
+       id="text15">−2</text>
+    <text
+       x="260"
+       y="277"
+       id="text16">−1</text>
+    <text
+       x="362"
+       y="277"
+       id="text17">0</text>
+    <text
+       x="464"
+       y="277"
+       id="text18">1</text>
+    <text
+       x="566"
+       y="277"
+       id="text19">2</text>
+    <text
+       x="668"
+       y="277"
+       id="text20">3</text>
+  </g>
+  <!-- axis label -->
+  <text
+     x="669"
+     y="146.83545"
+     class="axislabel"
+     id="text21">x <tspan
+   class="unit"
+   id="tspan20">(m)</tspan></text>
+  <!-- origin callout -->
+  <text
+     x="150"
+     y="285.83545"
+     class="label"
+     id="text22">Origin</text>
+  <path
+     d="m 279,274.83545 h 23 l 29,-62"
+     fill="none"
+     stroke="#202020"
+     stroke-width="1.6"
+     id="path22" />
+  <path
+     style="fill:#2d2d2d;stroke:#2d2d2d;stroke-width:2;stroke-linecap:round"
+     d="M 10,19.835449 H 150"
+     id="path1" />
+  <path
+     style="fill:#2d2d2d;stroke:#2d2d2d;stroke-width:2;stroke-linecap:round"
+     d="M 510,19.835449 H 670"
+     id="path2" />
+  <path
+     style="fill:#2d2d2d;stroke:#2d2d2d;stroke-width:2;stroke-linecap:round"
+     d="M 130,83.835449 H 10"
+     id="path3" />
+  <path
+     style="fill:#2d2d2d;stroke:#2d2d2d;stroke-width:2;stroke-linecap:round"
+     d="M 510,83.835449 H 670"
+     id="path4" />
+  <path
+     style="fill:none;stroke:#2d2d2d;stroke-width:2;stroke-linecap:round"
+     d="m 660,9.8354492 10,9.9999998 -10,10"
+     id="path5" />
+  <path
+     style="fill:none;stroke:#2d2d2d;stroke-width:2;stroke-linecap:round"
+     d="m 20,73.835449 -10,10 10,10"
+     id="path6" />
+</svg>

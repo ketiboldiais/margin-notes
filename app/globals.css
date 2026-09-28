@@ -3,6 +3,24 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --foreground: #171717;
+  --blockquote-bg: rgb(227, 227, 227);
+  --red: rgb(221, 115, 115);
+  --blue: rgb(89, 150, 194);
+  --green: rgb(119, 175, 140);
+  --orange: rgb(220, 185, 113);
+  --grey: rgb(117, 117, 117);
+  --pencil: rgb(138, 138, 138);
+  --lightgrey: #c3c3c3;
+  --dimgrey: rgb(174, 174, 174);
+  --purple: rgb(66, 66, 66);
+  --code-bg: rgb(219, 219, 219);
+  --aside-color: #7a7a7a;
+  --peach: rgb(65, 65, 65);
+  --mocha: rgb(87, 87, 87);
+  --brightBlue: rgb(44, 44, 44);
+  --latte: rgb(73, 73, 73);
+  --brighPink: rgb(32, 32, 32);
 }
 
 @theme inline {
@@ -44,7 +62,15 @@
   font-style: normal;
 }
 
-html { font-size: 12px; }
+
+@font-face {
+  font-family: "Fira Code";
+  src: url("./fonts/FiraCode-VariableFont_wght.ttf");
+  /* font-weight: bold; */
+  /* font-style: normal; */
+}
+
+html { font-size: 13px; }
 
 body {
   font-family: 'tp';
@@ -54,6 +80,8 @@ body {
   flex-direction: column;
   min-height: 100dvh;
   margin: 0;
+  padding: 1vh 5vw;
+  overscroll-behavior-x: none;
 }
 
 .katex {
@@ -61,6 +89,15 @@ body {
 }
 .katex-display {
   margin: 0.8em 0;
+}
+
+.katex .texttt {
+  font-family: "Fira Code";
+}
+
+.mord .text {
+  font-family: 'tp';
+  font-size: 0.9rem;
 }
 
 main {
@@ -96,7 +133,7 @@ h3,
 h4,
 h5,
 h6 {
-  margin-top: 1.5vh;
+  margin-top: 4vh;
 }
 
 ol {
@@ -134,6 +171,35 @@ h3::before { content: counter(part) "." counter(subpart) "\00a0" "\00a0" "\00a0"
 h4::before { content: counter(part) "." counter(subpart) "." counter(chapter) "\00a0" "\00a0" "\00a0"; }
 h5::before { content: counter(part) "." counter(subpart) "." counter(chapter) "." counter(module) "\00a0" "\00a0" "\00a0"; }
 h6::before { content: counter(part) "." counter(subpart) "." counter(chapter) "." counter(module) "." counter(submodule) "\00a0" "\00a0" "\00a0"; }
+
+article.main h2::before {
+  content: "";
+}
+
+div.main-toc div { counter-increment: main-toc-part; counter-reset: main-toc-subpart; }
+div.main-toc li { counter-increment: main-toc-subpart; counter-reset: main-toc-chapter; }
+div.main-toc li li { counter-increment: main-toc-chapter; counter-reset: main-toc-module; }
+div.main-toc li li li { counter-increment: main-toc-module; counter-reset: main-toc-submodule; }
+div.main-toc li li li li { counter-increment: main-toc-submodule; counter-reset: main-toc-section; }
+
+div.main-toc h2::before { content: counter(main-toc-part) "\00a0" "\00a0" "\00a0" }
+div.main-toc li::before { content: counter(main-toc-part) "." counter(main-toc-subpart) "\00a0" "\00a0" "\00a0"; }
+div.main-toc li li::before { content: counter(main-toc-part) "." counter(main-toc-subpart) "." counter(main-toc-chapter) "\00a0" "\00a0" "\00a0"; }
+div.main-toc li li li::before {
+  content: counter(main-toc-part) "." counter(main-toc-subpart) "." counter(main-toc-chapter) "." counter(main-toc-module) "\00a0" "\00a0" "\00a0";
+}
+
+div.main-toc li li li li::before {
+  content: counter(main-toc-part) "." counter(main-toc-subpart) "." counter(main-toc-chapter) "." counter(main-toc-module) "." counter(main-toc-submodule) "\00a0" "\00a0" "\00a0";
+}
+
+div.main-toc ul {
+  margin: 0;
+  /* margin-left: 1vw; */
+  list-style: none;
+}
+
+
 
 a {
   /* color: inherit;
@@ -183,6 +249,8 @@ ul ul {
 
 code {
   font-size: 0.85rem;
+  font-family: "Fira Code";
+  font-variant-ligatures: none;
 }
 
 article {
@@ -200,4 +268,410 @@ del {
 
 p {
   margin-bottom: 1.5vh;
+  margin-top: 1.5vh;
+}
+
+p + ol {
+  margin-top: -0.5vh;
+}
+
+ol {
+  margin-left: 3vw;
+}
+
+
+/* Ensure paragraphs immediately below a heading do not have top-margins. */
+h2 + p, 
+h3 + p, 
+h4 + p, 
+h5 + p, 
+h6 + p {
+  margin-top: 0;
+}
+
+.hljs-comment {
+  color: var(--pencil); 
+}
+
+pre {
+  border-top: solid 1px var(--pencil);
+  border-bottom: solid 1px var(--pencil);
+}
+
+th {
+  font-size: 0.95rem;
+  font-weight: normal;
+}
+
+table,
+th,
+td {
+  margin: auto;
+  width: fit-content;
+}
+
+table {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+table p {
+  margin: 0;
+}
+
+th {
+  text-align: center;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+table td {
+  padding: 1px 5px;
+}
+
+table {
+  border-collapse: collapse;
+}
+table td {
+  border: solid thin lightgray; 
+  border-bottom: solid thin lightgrey;
+}
+table th {
+  border-bottom: solid thin lightgrey;
+}
+table tr:first-child td {
+  border-top: 0;
+}
+table tr td:first-child {
+  border-left: 0;
+}
+table tr:last-child td {
+  border-bottom: 0;
+}
+table tr td:last-child {
+  border-right: 0;
+}
+
+div.procedure {
+  counter-reset: lineNumber -1;
+  border-top: solid thin lightgray;
+  border-bottom: solid thin lightgray;
+  padding: 5px 0 5px 0;
+  margin: 1em 1.5em;
+  /* font-size: 0.9em; */
+  overflow-y: scroll;
+}
+div.procedure blockquote {
+  margin: 0;
+  padding: 0;
+  font-size: 1.1em;
+  border-bottom: solid thin lightgray;
+}
+div.procedure pre {
+  margin: 0;
+  border-top: 0;
+  border-bottom: 0;
+}
+/* div.procedure small { font-size: 1.1em; } */
+div.procedure p {
+  font-size: inherit;
+  padding: 0;
+  margin: 0;
+}
+div.procedure ol {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+div.procedure ol li {
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+div.procedure ol li::before {
+  content: counter(lineNumber);
+  counter-increment: lineNumber;
+  font-family: KaTeX_Main;
+  position: relative;
+  display: inline-block;
+  min-width: 10px;
+}
+div.procedure ol ol {
+  border-left: solid thin rgb(226, 226, 226);
+}
+div.procedure ol {
+  margin-left: 1rem;
+}
+div.procedure li em {
+  color: rgb(146, 171, 182);
+  font-style: italic;
+  font-size: 0.75rem;
+  display: inline;
+  text-align: left;
+  line-height: 1.3rem;
+  width: max-content;
+  margin: 0;
+  padding: 0;
+  float: right;
+}
+
+.warning {
+  display: block;
+  float: left;
+  clear: right;
+  position: relative;
+  margin-left: -1.5em;
+  font-size: 1.2rem;
+}
+
+div.procedure ol li::before {
+  right: 1rem;
+}
+div.procedure ol li li::before {
+  right: 2.1rem;
+}
+div.procedure ol li li li::before {
+  right: 3.1rem;
+}
+div.procedure ol li li li li::before {
+  right: 4.2rem;
+}
+div.procedure ol li li li li li::before {
+  right: 5.1rem;
+}
+div.procedure ol li li li li li li::before {
+  right: 6.1rem;
+}
+/* div.procedure > ol {
+  margin-top: 6px;
+  margin-left: 1em;
+} */
+div.procedure ul {
+  list-style: none;
+}
+div.procedure ul {
+  padding: 0;
+  margin: 0;
+}
+div.procedure ul li {
+  padding: 0;
+  margin: 0;
+}
+div.procedure ul ul {
+  padding: 0 1em;
+  margin: 0;
+}
+/* div.procedure p:first-child span.textup {font-weight: 600;} */
+/* div.procedure p:first-child {font-variant: small-caps;} */
+div.procedure p:first-child {
+  padding: 2px 0;
+  margin-bottom: 5px;
+  /* border-bottom: solid thin lightgrey; */
+  font-size: 1em;
+}
+div.procedure li > p {
+  display: inline !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+  border: 0 !important;
+}
+
+nav {
+  /* position: sticky; */
+  padding: 1vw 2vw;
+  /* border-bottom: solid thin var(--pencil); */
+  /* padding-left: 1vw; */
+  /* background-color: lightgray; */
+  /* top: 0; */
+}
+
+.toc li {
+  margin: 0;
+}
+.toc .heading {
+  font-weight: bold;
+  display: block;
+}
+
+
+.toc li {counter-increment: part;        counter-reset: subpart;}
+.toc li li {counter-increment: subpart;     counter-reset: chapter;}
+.toc li li li {counter-increment: chapter;     counter-reset: module;}
+.toc li li li li {counter-increment: module;      counter-reset: submodule;}
+.toc li li li li li {counter-increment: submodule;   counter-reset: submodule;}
+.toc li::before { content: counter(part) "\00a0" "\00a0"; }
+.toc li li::before { content: counter(part) "." counter(subpart) "\00a0" "\00a0"; }
+.toc li li li::before { content: counter(part) "." counter(subpart) "." counter(chapter) "\00a0" "\00a0"; }
+.toc li li li li::before { content: counter(part) "." counter(subpart) "." counter(chapter) "." counter(module) "\00a0" "\00a0"; }
+.toc li li li li li::before { content: counter(part) "." counter(subpart) "." counter(chapter) "." counter(module) "." counter(submodule) "\00a0" "\00a0"; }
+
+.toc a {
+  text-decoration: none;
+  border-bottom: none;
+  color: inherit;
+}
+
+.toc {
+  padding-left: 5px;
+}
+
+.toc h2 {
+  margin: 0;
+}
+
+.toc ul {
+  list-style: none;
+  margin: 0;
+}
+
+/* Wide viewport */
+@media (min-width: 1300px) {
+  aside {
+    float: right;
+    clear: right;
+    margin-right: -15vw;
+    text-align: left;
+    top: 3rem;
+    width: 14vw;
+    margin-top: 1rem;
+  }
+  article {
+    margin-left: 20vw;
+    /* width: 80%; */
+  }
+  .article-main {
+    margin: 0 auto;
+  }
+  .toc {
+    background-color: var(--background);
+    z-index: 100;
+    position: fixed;
+    float: left;
+    margin-left: -24.5vw;
+    margin-top: -20vh;
+    border-right: thin solid var(--blockquote-bg);
+    height: 97vh;
+    padding: 1vh 0.5vw;
+    width: 22vw;
+  }
+  .toc > ul {
+    border-top: thin solid var(--blockquote-bg);
+    height: 90vh;
+    padding-bottom: 5vh;
+    overflow-y: scroll;
+    margin-left: 0;
+  }
+  .toc ul ul,
+  .toc ul ul ul {
+    list-style: none;
+    margin: 0;
+    margin-right: 0;
+  }
+}
+
+article {
+  width: clamp(300px, 70%, 600px);
+  margin: 0 auto;
+  margin-bottom: 10vh;
+  /* overflow-x: hidden; */
+  /* overflow-y: hidden; */
+}
+
+footer {
+  display: block;
+  width: fit-content;
+  margin: 3vh auto;
+  color: lightgray;
+}
+
+.block {
+  /* border-left: solid 3px var(--grey); */
+  /* padding-left: 10px; */
+  /* margin: 20px 10px; */
+  border: solid 1px rgb(204, 204, 204);
+  background-color: rgb(233, 233, 233);
+  border-radius: 2px;
+  padding: 5px 7px;
+  margin: 5px 15px;
+}
+
+.block p:first-child {
+  margin: 0;
+}
+
+aside {
+  color: var(--grey);
+  font-size: 90%;
+  position: relative;
+  border-top: thin solid var(--grey);
+  border-bottom: thin solid var(--grey);
+  margin-top: 1vh;
+  margin-bottom: 1vh;
+}
+
+aside p {
+  margin: 0;
+  margin-bottom: 0.5vh;
+}
+li p {
+  margin: 0;
+}
+
+/* Standard implementation for Firefox */
+.toc {
+  scrollbar-color: #888 transparent; /* thumb color | track color */
+}
+
+/* Implementation for Chrome, Safari, and Edge */
+.toc::-webkit-scrollbar {
+  width: 8px;               /* Width of the vertical scrollbar */
+  height: 8px;              /* Height of the horizontal scrollbar */
+  background: transparent;  /* Hides the main scrollbar track background */
+}
+
+.toc::-webkit-scrollbar-track {
+  background: transparent;  /* Ensures the track stays transparent */
+}
+
+.toc::-webkit-scrollbar-thumb {
+  background: #888;         /* Color of the scrolling thumb */
+  border-radius: 4px;       /* Optional: rounds the thumb edges */
+}
+
+/* colors for table cells */
+.grey-cell {
+  background-color: rgb(224, 224, 224);
+}
+
+figcaption {
+  font-style: italic;
+  text-align: center;
+}
+
+ol ol {
+  list-style: lower-latin;
+}
+
+.example-block {
+  background-color: rgb(225, 225, 225);
+  margin: 0 1vw;
+  border-radius: 5px;
+}
+.example-block .example-body {
+  padding: 0.5vh 2vw;
+}
+
+.example-block .example-header {
+  border-radius: 5px 5px 0 0;
+  display: block;
+  /* border: solid thin black; */
+  padding: 0.2vh 2vw;
+  font-variant: small-caps;
+  font-size: 1.1em;
+  font-weight: bold;
+  background-color: #a9a9a9;
+}
+.example-block p:first-child {
+  margin-top: 0;
 }

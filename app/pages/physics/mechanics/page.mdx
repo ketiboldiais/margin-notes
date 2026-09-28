@@ -1,0 +1,28 @@
+import MdxLayout from "@/components/mdx-layout";
+
+import {ONE_D_MOTION} from "@/components/figures.physics.tsx";
+
+# Mechanics
+## 1D Motion
+If we placed an object on an axis, then that object's __position__ is its coordinate relative to some reference point, often the __origin__ of that axis. Motion along a single axis is called __one-dimensional motion__. The __positive direction__ of the axis is the direction of increasing numbers (coordinates). The __negative direction__ of the axis is the direction of decreasing numbers.
+
+<ONE_D_MOTION/>
+
+A change in position from ${x_1}$ to ${x_2}$ is called a __displacement__, denoted ${\Delta x.}$
+
+$$
+    \Delta x ~\equals~ x_2 ~\minus~ x_1. 
+$$
+
+Displacement is a vector. The sign tells us the displacement's direction, and the absolute value tells us the displacement's __magnitude__.
+
+### Average Velocity
+The average velocity, ${\monov_\text{avg},}$ is the change in an object's position (displacement) divided by the amount of time over which that change occurs.
+
+$$
+    v_{\text{avg}} ~\equals~ \dfrac{\Delta x}{\Delta t} ~\equals~ \dfrac{x_2 ~\minus~ x_1}{t_2 ~\minus~ t_1}
+$$
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}

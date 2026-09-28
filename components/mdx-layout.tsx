@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 export default function MdxLayout({ children }: { children: ReactNode }) {
   return (
     <div>
-        <Link href={"/"}>Home</Link>
       <article>{children}</article>
       <footer>Ketib Oldiais © 2026</footer>
     </div>

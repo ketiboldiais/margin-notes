@@ -1,0 +1,146 @@
+import MdxLayout from "@/components/mdx-layout";
+
+# Implementing LEM
+This page outlines LEM's development and implementation process. 
+
+## Overview
+LEM is an interpreted language. It takes source code (what the user writes) and generates tokens. From there, the tokens are fed to the parser, which ultimately generates a syntax tree. That syntax tree is then fed to an interpreter, which executes the code. 
+
+## Source Code
+The source code is whatever the user types, to be executed by the interpreter. The source code, however, must follow LEM's _grammar_ and _conventions_. Otherwise, the interpreter will not understand the inputted source code. The following sections provide an overview of LEM's grammatical framework.
+
+### Expressions
+The simplest piece of code LEM can interpet is an expression. 
+
+#### Integers and Fractions
+LEM errs on the side of using integers and fractions. _Real floating point arithmetic_ (RFPA) is the default mode of arithmetic for conventional programming languages. LEM uses _exact arbitrary precision rational number arithmetic_ (EAPRNA). Although RFPA leads to generally faster computations, the tradeoff is accuracy. RFPA, by nature, inevitably leads to small numerical errors. We bypass these errors by avoiding RFPA unless absolutely necessary (e.g., when working with graphics, LEM will use RFPA).
+
+~~~python
+7 # integer
+7_000 # integer
+1|2 # fraction
+7|8 # fraction
+~~~
+
+#### Real Numbers
+In LEM, a real number is a value with a finite number of digits, includes a decimal point, and may include an optional power of ${10.}$
+
+~~~python
+3.14 # a real number
+.3333 # another real number
+6.5E12 # a real number with a power of 10
+6.5E-5 # another real number with a power of 10
+~~~
+
+#### Identifiers
+In LEM, an identifier is a string of characters constructed with English letters, Greek letters, the digits ${0...9,}$ and the underscore symbol "`_`". An identifier begins with an English or Greek letter or the underscore symbol.
+
+
+~~~python
+x # an identifier
+general_solution # another identifier
+µ # a greek letter identifier
+∆x # a greek-english identifier
+2xy # not an identifier
+xy2 # an identifier
+~~~
+
+#### Algebraic Operators and Parentheses
+The following symbols are interpreted as operators:
+
+| Symbol | Operation              |
+| ------ | ---------------------- |
+| `+`    | Addition               |
+| `-`    | Subtraction            |
+| `*`    | Multiplication         |
+| `/`    | Division               |
+| `^`    | Power                  |
+| `!`    | Factorial              |
+| `rem`  | Remainder              |
+| `%`    | Modulo                 |
+| `&`    | Sequence Concatenation |
+| `~+`   | Matrix Addition        |
+| `~*`   | Matrix Multiplication  |
+| `~/`   | Matrix Division        |
+| `~^`   | Matrix Power           |
+| `~!`   | Matrix Factorial       |
+| `~rem` | Matrix Factorial       |
+| `~%`   | Matrix Modulo          |
+
+#### Reserved Symbol
+A reserved symbol is an identifier that has a constant mathematical meaning in LEM. The following are LEM's reserved symbols.
+
+| Symbol  | Meaning                                  |
+| ------- | ---------------------------------------- |
+| `pi`    | ${\pi}$                                  |
+| `e`     | ${e}$                                    |
+| `i`     | ${i}$                                    |
+| `phi`   | ${\varphi}$                              |
+| `inf`   | ${\infty}$                               |
+| `true`  | Boolean true                             |
+| `false` | Boolean false                            |
+| `NaN`   | Not a Number (used for numerical errors) |
+| `null`  | null value                               |
+
+#### Functions
+In LEM, functions include _mathematical functions_ (`sin(𝑥)`, `arctan(𝑥)` etc.), _mathematical operators_ (`expand(𝑢)`, `factor(𝑢)`, etc.), _defined functions_ (`f(𝑥) := 𝑥^2`, `g(𝑥) = tan(𝑥)/2𝑥`, etc.), and _undefined functions_ (`f(𝑥)`, `g(𝑥,𝑦)`, `h(𝑛 + 1)`, etc.)
+
+_Mathematical functions_ are functions that acquire meaning through LEM's transformation rules. _Mathematical operators_ are functions that manipulate and analyze mathematical expressions. _Defined functions_ are functions defined by the user. _Undefined functions_ are expressions in function notation, but without an explicit function definition. 
+
+#### Relational Expressions
+In LEM, a relational expression is an expression that denotes a relationship between two expressions by way of a relational operator. LEM recognizes the following relational operators.
+
+| Operator | Meaning                                                      |
+| -------- | ------------------------------------------------------------ |
+| `a = b`  | `a` is equal to `b`                                          |
+| `a ~ b`  | `a` is similar to `b` (same type, but not necessarily value) |
+| `a != b` | `a` is not equal to `b`                                      |
+| `a < b`  | `a` is less than `b`                                         |
+| `a > b`  | `a` is greater than `b`                                      |
+| `a <= b` | `a` is less than or equal to `b`                             |
+| `a >= b` | `a` is greater than or equal to `b`                          |
+
+#### Logical Expressions
+A logical expression in LEM is an expression constructed using logical constants (`true` or `false`), relational expressions, or identifiers, combined with one or more logical operators. LEM recognizes the following logical operators:
+
+| Operator | Meaning                 |
+| -------- | ----------------------- |
+| `and`    | conjunction             |
+| `or`     | disjunction             |
+| `not`    | negation                |
+| `nand`   | non-conjunction         |
+| `nor`    | non-disjunction         |
+| `xnor`   | biconditional           |
+| `xor`    | exclusive disjunction   |
+| `-->`     | material conditional    |
+| `!-->`    | abjunction              |
+| `<--`     | converse                |
+| `!<--`    | converse nonimplication |
+
+#### Sets
+A set is an unordered collection of mathematical expressions. In LEM, sets are denoted with braces.
+
+~~~python
+{1,2,3} # a set with 1, 2, and 3.
+{} # an empty set.
+~~~
+
+#### Lists
+A list is a sequence of mathematical expressions. In LEM, sequences are denoted with parentheses:
+
+~~~python
+(1,2,3,4) # a list with 1, 2, 3, and 4.
+() # the empty list.
+~~~
+
+#### Strings
+A string is a sequence of symbols delimited by double quotes `"`.
+
+~~~python
+"LEM" # the string "LEM"
+"" # the empty string
+~~~
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}
