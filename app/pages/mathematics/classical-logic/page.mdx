@@ -1,0 +1,424 @@
+import MdxLayout from "@/components/mdx-layout";
+
+# Classical Logic
+These are notes from my first year undergraduate course in logic.
+
+<TOC>
+
+- [Atomic Propositions](#atomic-propositions)
+- [Types of Arguments](#types-of-arguments)
+- [Forms of Deductive Arguments](#forms-of-deductive-arguments)
+  - [Argument from Definition](#argument-from-definition)
+  - [Syllogism](#syllogism)
+    - [Categorical Syllogism](#categorical-syllogism)
+    - [Hypothetical Syllogism](#hypothetical-syllogism)
+    - [Disjunctive Syllogism](#disjunctive-syllogism)
+- [Forms of Inductive Arguments](#forms-of-inductive-arguments)
+  - [Prediction](#prediction)
+  - [Argument by Analogy](#argument-by-analogy)
+  - [Generalization](#generalization)
+  - [Argument from Authority](#argument-from-authority)
+  - [Argument Based on Signs](#argument-based-on-signs)
+- [Compound Propositions](#compound-propositions)
+  - [Negation](#negation)
+  - [Conjunction](#conjunction)
+  - [Disjunction](#disjunction)
+  - [Exclusive Disjunction](#exclusive-disjunction)
+  - [Non-conjunction](#non-conjunction)
+  - [Material Conditional](#material-conditional)
+- [The Law of Excluded Middle](#the-law-of-excluded-middle)
+- [First-order Logic](#first-order-logic)
+
+
+</TOC>
+
+
+## Atomic Propositions
+A __statement__ is a declarative sentence.
+
+A __proposition__ is a statement that is true or false but not both.
+
+An __atomic proposition__ is a proposition that expresses a single idea.
+
+~example~. ${17}$ is a prime number.
+
+An __argument__ is a set of propositions. Some of these propositions are called __premises__, which are claimed to provide support for, or reasons to believe, other propositions within the argument (called __conclusions__).  
+
+In the English language, conclusions are indicated by certain words:
+
+<Cols of={3} width="70%">
+<div>
+therefore
+
+accordingly
+
+entails that
+
+consequently
+
+we may infer
+</div>
+<div>
+wherefore
+
+we may conclude
+
+hence
+
+for this reason
+
+so
+</div>
+<div>
+thus
+
+it must be that
+
+it follows that
+
+implies that
+
+as a result
+</div>
+</Cols>
+
+__Logic__ is the systematic study of correct reasoning, valid arguments, and the rules that separate "good thinking" from "bad thinking."
+
+## Types of Arguments
+In classical logic, there are two types of arguments: deductive aruments and inductive arguments. __Deductive arguments__ is an argument where it is impossible for the conclusion to be false given that the premises are true. An __inductive argument__ is an argument incorporating the claim that it is __improbable__ that the conclusion be false given that the premises are true.
+
+## Forms of Deductive Arguments
+### Argument from Definition
+An __argument from definition__ is an argument in which the conclusion is drawn directly from the accepted definition of a word or concept. 
+
+<Example> 
+
+<table>
+    <tbody>
+        <tr>
+            <td className="grey-text">Definition.</td>
+            <td>An ${\monoX}$ is a ${\monoY}$ and ${\monoZ.}$</td>
+        </tr>
+        <tr>
+            <td className="grey-text">Premise.</td>
+            <td>${\monoS}$ is an ${\monoX.}$</td>
+        </tr>
+        <tr>
+            <td className="grey-text">Conclusion.</td>
+            <td>Therefore, ${\monoS}$ is a ${\monoY}$ and ${\monoZ.}$</td>
+        </tr>
+    </tbody>
+</table>
+
+
+</Example> 
+
+### Syllogism
+A __syllogism__ is an argument consisting of exactly two premises and one conclusion.
+
+#### Categorical Syllogism
+A __categorical syllogism__ is a syllogism in which each statement begins with one of the words "all," "no," or "some."
+
+#### Hypothetical Syllogism
+A __hypothetical syllogism__ is a syllogism with a conditional proposition for one or both of its premises.
+
+#### Disjunctive Syllogism
+A __disjunctive syllogism__ is a syllogism is a syllogism with a disjunctive proposition.
+
+## Forms of Inductive Arguments
+### Prediction
+A __predicition__ is an argument that concludes with a claim about the future, following from premises based on knowledge of the past. 
+
+### Argument by Analogy
+An __argument by analogy__ is an argument that reasons because two or more things are similar in known respects, they are probably similar in some further respect. Arguments by analogy generall take the following form:
+
+<Example>
+
+<table>
+    <tbody>
+        <tr>
+            <td className="grey-text">P1.</td>
+            <td>${\monoA}$ has properties ${\monoP_1,}$ ${\monoP_2,}$ ${\monoP_3,}$ and ${\monoQ.}$</td>
+        </tr>
+        <tr>
+            <td className="grey-text">P2.</td>
+            <td>${\monoB}$ has properties ${\monoP_1,}$ ${\monoP_2,}$ and ${\monoP_3.}$</td>
+        </tr>
+        <tr>
+            <td className="grey-text">${\therefore}$</td>
+            <td>${B}$ probably has property ${\monoQ.}$</td>
+        </tr>
+    </tbody>
+</table>
+
+
+</Example>
+
+
+### Generalization
+A __generalization__ is an argument that proceeds from the knowledge of a selected sample to some claim about the whole group.
+
+### Argument from Authority
+An __argument from authority__ is an argument that concludes something is true because a presumed expert or witness has said it is.
+
+### Argument Based on Signs
+An __argument based on signs__ is an inductive argument that reasons: Because of the presence of a sign, symptom, mark, or indicator, something associated with that sign is probably true (or false).
+
+<Example>
+
+<table>
+    <tbody>
+        <tr>
+            <td className="grey-text">P1.</td>
+            <td>Sign ${\monoS}$ is typically associated with ${\monoC.}$</td>
+        </tr>
+        <tr>
+            <td className="grey-text">P2.</td>
+            <td>Sign ${\monoS}$ is present.</td>
+        </tr>
+        <tr>
+            <td className="grey-text">${\therefore}$</td>
+            <td>${\monoC}$ probably exists.</td>
+        </tr>
+    </tbody>
+</table>
+
+
+</Example>
+
+## Compound Propositions
+We use logical connectives to form __compound propositions__—propositions that express two or more ideas.
+
+### Negation
+The symbol ${\neg}$ denotes "not." Given a proposition ${\monop,}$ the proposition ${\monop}$ is read "not ${\monop}$" or "It is not the case that ${\monop.}$"
+
+~example~. Let ${\monop ~\equals}$ "${x}$ is prime." Then ${\neg\monop ~\equals}$ "${x}$ is not prime." 
+
+Below is the truth table for negation:
+
+<table className="truth-table">
+    <thead>
+        <tr>
+            <th>${\monop}$</th>
+            <th>${\neg\monop}$</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td className="green">${\texttt{T}}$</td>
+            <td className="red">${\texttt{F}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\texttt{F}}$</td>
+            <td className="green">${\texttt{T}}$</td>
+        </tr>
+    </tbody>
+</table>
+
+### Conjunction
+Let ${\monop}$ and ${\monoq}$ be propositions. The __conjunction__ of ${\monop}$ and ${\monoq}$ is "${\monop}$ and ${\monoq,"}$ denoted ${\monop \land \monoq.}$ The proposition ${\monop \land \monoq}$ is true if, and only if, both ${\monop}$ and ${\monoq}$ are true. If either ${\monop}$ or ${\monoq}$ is false, or if both are false, then ${\monop \land \monoq}$ is false.
+
+<table className="truth-table">
+    <thead>
+        <tr>
+            <th>${\monop}$</th>
+            <th>${\monoq}$</th>
+            <th>${\monop \land \monoq}$</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="red">${\ms{F}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+        </tr>
+    </tbody>
+</table>
+
+### Disjunction
+Let ${\monop}$ and ${\monoq}$ be propositions. Then the __disjunction__ of ${\monop}$ and ${\monoq}$ is "${\monop}$ or ${\monoq,}$" denoted ${\monop \lor \monoq.}$ Given ${\monop \lor \monoq,}$ the propositions ${\monop}$ and ${\monoq}$ are called the __disjuncts__ of ${\monop \lor \monoq.}$
+
+<table className="truth-table">
+    <thead>
+        <tr>
+            <th>${\monop}$</th>
+            <th>${\monoq}$</th>
+            <th>${\monop \lor \monoq}$</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+        </tr>
+    </tbody>
+</table>
+
+### Exclusive Disjunction
+The __exclusive disjunction__ of ${\monop}$ and ${\monoq}$ is denoted ${\monop \lxor \monoq.}$ The exclusive disjunction of ${\monop}$ and ${\monoq}$ is true if, and only if one of ${\monop}$ or ${\monoq}$ is true, not both.  
+
+<table className="truth-table">
+    <thead>
+        <tr>
+            <th>${\monop}$</th>
+            <th>${\monoq}$</th>
+            <th>${\monop \lxor \monoq}$</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="red">${\ms{F}}$</td>
+        </tr>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+        </tr>
+    </tbody>
+</table>
+
+### Non-conjunction
+The __non-conjunction__ of ${\monop}$ and ${\monoq}$ is denoted ${\monop \lnand \monoq.}$ The non-conjunction ${\monop \lnand \monoq}$ is true if, and only if, at least one of ${\monop}$ or ${\monoq}$ is false.
+
+<table className="truth-table">
+    <thead>
+        <tr>
+            <th>${\monop}$</th>
+            <th>${\monoq}$</th>
+            <th>${\monop \lnand \monoq}$</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="red">${\ms{F}}$</td>
+        </tr>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+    </tbody>
+</table>
+
+The non-conjunction is also called the _Sheffer stroke_, the _alternative denial_, or the _NAND_ ("not and").
+
+### Material Conditional
+If ${\monop}$ and ${\monoq}$ are propositions, then the __material conditional__ (or __material implication__) of ${\monop}$ and ${\monoq}$ is ${\monop \then \monoq.}$ The proposition ${\monop \then \monoq}$ is true unless ${\monop}$ is true and ${\monoq}$ is false.
+
+<table className="truth-table">
+    <thead>
+        <tr>
+            <th>${\monop}$</th>
+            <th>${\monoq}$</th>
+            <th>${\monop \then \monoq}$</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="green">${\ms{T}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+        <tr>
+            <td className="red">${\ms{F}}$</td>
+            <td className="red">${\ms{F}}$</td>
+            <td className="green">${\ms{T}}$</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+## The Law of Excluded Middle
+The __law of excluded middle__ says that for any proposition ${\monop,}$
+
+$$
+    \monop \lor \neg\monop
+$$
+
+is true. In classical logic, this is accepted as a fundamental logical principle. Intuitionists—and more broadly, constructivists—do not accept the law of excluded middle as a fundamental logical principle. Given a proposition ${\monop \lor \monoq,}$ one must produce a proof of ${\monop}$ or a proof of ${\monoq}$ to claim that ${\monop \lor \monoq}$ is true. Thus, to claim that ${\monop \lor \neg\monop}$ is true, one must produce a proof of ${\monop}$ or a proof of ${\neg\monop.}$ 
+
+## First-order Logic
+A __universal proposition__ is a proposition that asserts a certain property or characteristic is true for all things in a given collection.
+
+~example~. All positive numbers are greater than zero.
+
+A __conditional proposition__ is a proposition that asserts if some proposition is true, then another proposition must also be true.
+
+~example~. If ${378}$ is divisible by ${18,}$ then ${378}$ is divisible by ${6.}$
+
+An __existential proposition__ is a proposition that asserts that at least one thing exists for which a property or condition is true.
+
+~example~. There exists an integer ${x}$ such that ${x^2 = 4.}$
+
+A __universal conditional proposition__ is a proposition that asserts: (1) for all things in a given collection, (2) if some proposition is true, then (3) another proposition is true.
+
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}

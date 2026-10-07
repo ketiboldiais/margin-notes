@@ -6,12 +6,15 @@ import { CSSProperties, ReactNode } from "react";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
-    Cols: (props: { children: ReactNode; of?: number | string }) => {
+    Cols: (props: { children: ReactNode; of?: number | string, width?: string }) => {
       const columnCount = props.of ?? 2;
+      const width = props.width ?? '100%';
       const gridTemplateColumns = typeof props.of === 'string' ? props.of : `repeat(${columnCount}, 1fr)`;
       const style: CSSProperties = {
         display: 'grid',
         gridTemplateColumns,
+        width,
+        margin: 'auto',
       }
       return (
         <div style={style}>
@@ -27,6 +30,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         </div>
       </div>
     ),
+    Header: (props) => <span className="header">{props.children}</span>,
     Block: (props) => <div className="block">{props.children}</div>,
     Warning: () => <span className="warning">&#9888;</span>,
     Procedure: (props) => <div className="procedure">{props.children}</div>,

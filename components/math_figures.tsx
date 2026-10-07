@@ -1,5 +1,3 @@
-'use client';
-
 import single_element_set from "../app/media/images/single_element_set.svg";
 import subset_demo from "../app/media/images/subset_demo.svg";
 import unit_circle from "../app/media/images/unit_circle.svg";
@@ -8,7 +6,6 @@ import many_to_one_function from "../app/media/images/many_to_one_function.svg";
 import onto_function from "../app/media/images/onto_function.svg";
 import real_line from "../app/media/images/real_number_line.svg";
 import { Img } from "./Img";
-import { Katex } from "./katex";
 
 export const SINGLE_ELEMENT_SET = () => (
     <Img url={single_element_set} width={40} alt="A circle in a square to represent a single-element set."/>
@@ -19,9 +16,7 @@ export const SUBSET_DEMO = () => (
 )
 
 export const UNIT_CIRCLE = () => (
-    <Img url={unit_circle} width={200} alt="The unit circle." caption={
-        <Katex math="x^2 + y^2 = 1."/>
-    }/>
+    <Img url={unit_circle} width={200} alt="The unit circle."/>
 )
 
 export const ONE_TO_ONE_FUNCTION = () => (

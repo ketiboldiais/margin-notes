@@ -27,6 +27,11 @@ This is a collection of notes on foundational mathematical concepts, covering to
     - [Real Numbers](#real-numbers)
     - [Imaginary Numbers](#imaginary-numbers)
     - [Complex Numbers](#complex-numbers)
+      - [Complex Addition](#complex-addition)
+      - [Complex Multiplication](#complex-multiplication)
+      - [Properties of Complex Arithmetic.](#properties-of-complex-arithmetic)
+      - [Complex Subtraction](#complex-subtraction)
+      - [Complex Division](#complex-division)
     - [Algebraic Numbers](#algebraic-numbers)
     - [Transcendental Numbers](#transcendental-numbers)
   - [Intervals](#intervals)
@@ -37,7 +42,6 @@ This is a collection of notes on foundational mathematical concepts, covering to
     - [Solving Quadratic Equations](#solving-quadratic-equations)
     - [The Quadratic Formula](#the-quadratic-formula)
   - [Polynomial Equations](#polynomial-equations)
-- [Foundational Logic](#foundational-logic)
 
 </TOC>
 
@@ -369,19 +373,98 @@ From these facts, it follows that the real numbers can be ordered, from least to
 An __imaginary number__ is a number whose square is negative. That is, a number of the form 
 
 $$
-    r\text{i},
+    r\monoi,
 $$
 
-where ${r}$ is a real number and ${i = \sqrt{\minus 1}.}$ 
+where ${r}$ is a real number and ${\monoi = \sqrt{\minus 1}.}$ 
 
 #### Complex Numbers
 A __complex number__ is a number of the form
 
 $$
-    a ~\plus~ b\text{i},
+    a ~\plus~ b\monoi,
 $$
 
-where ${a}$ and ${b}$ are real numbers.
+where ${a}$ and ${b}$ are real numbers. More formally, a complex number is an ordered pair ${(a,b)}$ where ${a,b \in \R,}$ but we adopt the convention of writing this ordered pair as ${a + b\monoi.}$ The set of all complex numbers is denoted by the symbol ${\mathbb{C}:}$
+
+$$
+    \mathbb{C} = \setof{a,b \in \R : a ~\plus~ b\monoi}.
+$$
+
+##### Complex Addition
+Complex addition is defined as follows:
+
+$$
+    (a + b \monoi) + (c + d \monoi) = (a + c) + (b + d)\monoi.
+$$
+
+##### Complex Multiplication
+Complex multiplication is defined as follows:
+
+$$
+    (a + b \monoi)(c + d \monoi) = (ac - bd) + (ad + bc)\monoi.
+$$
+
+##### Properties of Complex Arithmetic.
+Suppose ${\monoa,}$ ${\monob,}$ and ${\monoc}$ are complex numbers. Then the following properties hold.
+
+<table>
+    <thead>
+        <tr>
+            <th>__Property__</th>
+            <th>__Description__</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Commutativity of Addition</td>
+            <td>
+                ${\monoa ~\plus~ \monob ~\equals~ \monob ~\plus~ \monoa}$
+            </td>
+        </tr>
+        <tr>
+            <td>Commutativity of Multiplication</td>
+            <td>${\monoa \monob ~\equals~ \monob \monoa}$</td>
+        </tr>
+        <tr>
+            <td>Additive Identity</td>
+            <td>${\monoc ~\plus~ 0 ~\equals~ \monoc}$</td>
+        </tr>
+        <tr>
+            <td>Multiplicative Identity</td>
+            <td>${1\monoc ~\equals~ \monoc}$</td>
+        </tr>
+        <tr>
+            <td>Additive Inverse</td>
+            <td>For every ${\monoa \in \mathbb{C},}$ there exists a unique ${\monob \in \mathbb{C}}$ such that ${\monoa ~\plus~ \monob ~\equals~ 0.}$</td>
+        </tr>
+        <tr>
+            <td>Multiplicative Inverse</td>
+            <td>For every ${\monoa \in \mathbb{C}}$ with ${\monoa \neq 0,}$ there is a unique ${\monob \in \mathbb{C}}$ such that ${\monoa \monob ~\equals~ 1.}$</td>
+        </tr>
+    </tbody>
+</table>
+
+##### Complex Subtraction
+Suppose ${\monoa}$ is a complex number. If ${\minus \monoa}$ is the additive inverse of ${\monoa,}$ then ${\minus \monoa}$ is the unique complex number such that
+
+$$
+    \monoa ~\plus~ \lpar \minus \monoa \rpar ~\equals~ 0.
+$$
+
+Subtraction on ${\mathbb{C}}$ is defined by
+
+$$
+    \monob ~\minus~ \monoa ~\equals~ \monob ~\plus~ \lpar \minus \monoa \rpar.
+$$
+
+##### Complex Division
+Suppose ${\monoa}$ is a complex number, with ${\monoa \neq 0.}$ Let ${1 \fs \monoa}$ denote the multiplicative inverse of ${\monoa.}$ Thus, ${1 \fs \monoa}$ is the unique complex number such that
+
+$$
+    \monoa \lpar 1 \fs \monoa \rpar ~\equals~ 1. 
+$$
+
 
 #### Algebraic Numbers
 A root to a polynomial equation with integer coefficients is called an __algebraic number__. Algebraic numbers can be real, imaginary, or complex. 
@@ -557,20 +640,6 @@ $$
 
 For each ${a_ix^j,}$ ${a_i}$ is a real number constant and ${j}$ is a nonnegative integer. If ${a_n}$ is not zero, the __degree__ of the polynomial is the largest exponent of the variable that appears in the equation.
 
-## Foundational Logic
-A __universal statement__ is a proposition that asserts a certain property or characteristic is true for all things in a given collection.
-
-~example~. All positive numbers are greater than zero.
-
-A __conditional statement__ is a proposition that asserts if some proposition is true, then another proposition must also be true.
-
-~example~. If ${378}$ is divisible by ${18,}$ then ${378}$ is divisible by ${6.}$
-
-An __existential statement__ is a proposition that asserts that at least one thing exists for which a property or condition is true.
-
-~example~. There exists an integer ${x}$ such that ${x^2 = 4.}$
-
-A __universal conditional statement__ is a proposition that asserts: (1) for all things in a given collection, (2) if some proposition is true, then (3) another proposition is true.
 
 
 export default function MDXPage({ children }) {

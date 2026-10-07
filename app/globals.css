@@ -15,7 +15,7 @@
   --dimgrey: rgb(174, 174, 174);
   --purple: rgb(66, 66, 66);
   --code-bg: rgb(219, 219, 219);
-  --aside-color: #7a7a7a;
+  --aside-color: #79a5b4;
   --peach: rgb(65, 65, 65);
   --mocha: rgb(87, 87, 87);
   --brightBlue: rgb(44, 44, 44);
@@ -127,18 +127,22 @@ h6 {
   font-family: 'ftb';
 }
 
+h2 + h3 {
+  margin-top: 0;
+}
+
 
 h2,
 h3,
 h4,
 h5,
 h6 {
-  margin-top: 4vh;
+  margin-top: 1.5vh;
 }
 
 ol {
   list-style: decimal;
-  margin-left: 1.1em;
+  /* margin-left: 0em; */
 }
 
 .toc li {
@@ -176,7 +180,7 @@ article.main h2::before {
   content: "";
 }
 
-div.main-toc div { counter-increment: main-toc-part; counter-reset: main-toc-subpart; }
+/* div.main-toc div { counter-increment: main-toc-part; counter-reset: main-toc-subpart; }
 div.main-toc li { counter-increment: main-toc-subpart; counter-reset: main-toc-chapter; }
 div.main-toc li li { counter-increment: main-toc-chapter; counter-reset: main-toc-module; }
 div.main-toc li li li { counter-increment: main-toc-module; counter-reset: main-toc-submodule; }
@@ -191,12 +195,32 @@ div.main-toc li li li::before {
 
 div.main-toc li li li li::before {
   content: counter(main-toc-part) "." counter(main-toc-subpart) "." counter(main-toc-chapter) "." counter(main-toc-module) "." counter(main-toc-submodule) "\00a0" "\00a0" "\00a0";
-}
+} */
+
+/* div.main-toc ul {
+  margin: 0;
+  margin-left: 1vw;
+  list-style: none;
+} */
 
 div.main-toc ul {
-  margin: 0;
-  /* margin-left: 1vw; */
-  list-style: none;
+  margin-left: 3%;
+  list-style:decimal;
+}
+div.main-toc ul ul {
+  /* list-style: circle; */
+  list-style:lower-roman;
+}
+div.main-toc ul ul ul {
+  /* list-style-type: "+  "; */
+  list-style:lower-latin;
+}
+div.main-toc ul ul ul ul {
+  /* list-style-type: "- "; */
+  list-style:decimal;
+}
+div.main-toc ul ul ul ul ul {
+  list-style: upper-latin;
 }
 
 
@@ -248,7 +272,7 @@ ul ul {
 }
 
 code {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-family: "Fira Code";
   font-variant-ligatures: none;
 }
@@ -271,12 +295,8 @@ p {
   margin-top: 1.5vh;
 }
 
-p + ol {
-  margin-top: -0.5vh;
-}
-
 ol {
-  margin-left: 3vw;
+  margin-left: 1em;
 }
 
 
@@ -296,6 +316,8 @@ h6 + p {
 pre {
   border-top: solid 1px var(--pencil);
   border-bottom: solid 1px var(--pencil);
+  padding: 0.75% 0.1em;
+  overflow-x: scroll;
 }
 
 th {
@@ -549,9 +571,9 @@ nav {
     position: fixed;
     float: left;
     margin-left: -24.5vw;
-    margin-top: -20vh;
+    margin-top: -15vh;
     border-right: thin solid var(--blockquote-bg);
-    height: 97vh;
+    height: 90vh;
     padding: 1vh 0.5vw;
     width: 22vw;
   }
@@ -601,11 +623,11 @@ footer {
 }
 
 aside {
-  color: var(--grey);
+  color: var(--aside-color);
   font-size: 90%;
   position: relative;
-  border-top: thin solid var(--grey);
-  border-bottom: thin solid var(--grey);
+  border-top: thin solid var(--aside-color);
+  border-bottom: thin solid var(--aside-color);
   margin-top: 1vh;
   margin-bottom: 1vh;
 }
@@ -614,9 +636,13 @@ aside p {
   margin: 0;
   margin-bottom: 0.5vh;
 }
+aside p:last-child {
+  margin-bottom: 0;
+}
 li p {
   margin: 0;
 }
+
 
 /* Standard implementation for Firefox */
 .toc {
@@ -652,26 +678,136 @@ figcaption {
 ol ol {
   list-style: lower-latin;
 }
+ol ol ol {
+  list-style: lower-roman;
+}
+
+ul ul ul {
+  list-style: square;
+}
 
 .example-block {
-  background-color: rgb(225, 225, 225);
-  margin: 0 1vw;
-  border-radius: 5px;
+  border-left: solid 4px lightgrey;
+  padding-left: 2%;
+  margin: 5% 0;
+  /* background-color: rgb(225, 225, 225); */
+  /* margin: 0 1vw; */
+  /* border-radius: 5px; */
 }
 .example-block .example-body {
-  padding: 0.5vh 2vw;
+  /* padding: 0.5vh 2vw; */
 }
 
 .example-block .example-header {
-  border-radius: 5px 5px 0 0;
-  display: block;
+  /* border-radius: 5px 5px 0 0; */
+  /* display: block; */
   /* border: solid thin black; */
-  padding: 0.2vh 2vw;
+  /* padding: 0.2vh 2vw; */
   font-variant: small-caps;
   font-size: 1.1em;
-  font-weight: bold;
-  background-color: #a9a9a9;
+  /* font-weight: bold; */
+  /* background-color: #a9a9a9; */
 }
 .example-block p:first-child {
   margin-top: 0;
+}
+
+.header {
+  display: block;
+  font-family: "ftb";
+  font-size: 1.1em;
+  margin: 0;
+}
+.header + p {
+  margin-top: 0;
+}
+
+summary {
+  /* font-weight: bold; */
+  font-family: "ftb";
+  /* font-style: italic; */
+  /* color: var(--blue); */
+}
+
+summary:hover {
+  cursor: pointer;
+}
+
+details section {
+  /* background-color: red; */
+  border-top: solid thin var(--grey);
+  border-bottom: solid thin var(--grey);
+  padding-bottom: 1%;
+  margin-top: 1%;
+  margin-bottom: 1%;
+} 
+
+details p {
+  margin-top: 1%;
+}
+details p:first-child {
+  margin-top: 0;
+}
+
+pre code {
+  font-size: 0.8rem;
+}
+
+code.language-ts .hljs-keyword {
+  font-weight: bold;
+}
+
+code.language-ts .hljs-built_in {
+  font-style: italic;
+}
+
+code.language-ts .hljs-title.function_ {
+  font-weight: bold;
+}
+
+code[data-line-numbers] {
+  counter-reset: line;
+}
+
+code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1rem;
+  margin-right: 1.5rem;
+  text-align: right;
+  color: #6b7280; /* gray color */
+}
+
+.truth-table {
+  border: solid thin #7f7f7f;
+}
+.truth-table th, .truth-table td {
+  border: solid thin #7f7f7f;
+  text-align: center;
+}
+.truth-table td.red {
+  background-color: rgb(241, 197, 197);
+}
+.truth-table td.green {
+  background-color: rgb(198, 230, 198);
+}
+
+td.grey-text {
+  color: var(--pencil)
+}
+
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+  font-size: 0.9em;
+}
+
+em strong {
+  font-style: normal;
+  font-weight: normal;
+  text-decoration: underline;
 }

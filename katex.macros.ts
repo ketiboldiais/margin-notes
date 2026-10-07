@@ -17,6 +17,15 @@ const katex_macros = {
   "\\codom": "\\text{codom}\\left(#1\\right)",
   "\\abs": "\\left| #1 \\right|",
   "\\setof": "\\left\\lbrace #1 \\right\\rbrace",
+  "\\percent": "\\texttt{\\%}",
+  "\\ms": "\\texttt{#1}",
+  "\\lxor": "\\veebar",
+  "\\lnand": "\\barwedge",
+  "\\then": "~\\texttt{=>}~",
+  // calculus
+  "\\deriv": "\\mathrm{d}",
+  // forward slash
+  "\\fs": "\\texttt{/}",
   // unicode courier
   "\\monoA":"𝙰",
   "\\monoa":"𝚊",

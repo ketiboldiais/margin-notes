@@ -6,6 +6,11 @@ const nextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
 };
 
+/** @type {import('rehype-pretty-code').Options} */
+const options = {
+  keepBackground: true,
+};
+
 const defaultConfig = createMDX({
   // Add markdown plugins here if needed (e.g., remark-gfm)
   options: {
@@ -17,8 +22,9 @@ const defaultConfig = createMDX({
           macros: katex_macros,
         },
       ],
-      "rehype-highlight",
+      // "rehype-highlight",
       "rehype-slug",
+      ["rehype-pretty-code", options],
     ],
   },
 });

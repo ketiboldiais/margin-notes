@@ -1,0 +1,187 @@
+import MdxLayout from "@/components/mdx-layout";
+
+# LEM
+This page outlines LEM's development process. 
+
+<TOC>
+
+- [Scanning](#scanning)
+  - [Tokens](#tokens)
+    - [`TokenType`](#tokentype)
+  - [`Token` Objects](#token-objects)
+    - [_`Token`_`._type`](#token_type)
+    - [_`Token`_`._lexeme`](#token_lexeme)
+    - [_`Token`_`._literal`](#token_literal)
+    - [_`Token`_`._line`](#token_line)
+    - [_`Token`_`.clone()`](#tokenclone)
+    - [_`Token`_`.type(𝑡)`](#tokentype𝑡)
+    - [_`Token`_`.line(ℓ)`](#tokenlineℓ)
+    - [_`Token`_`.lit(𝑝)`](#tokenlit𝑝)
+    - [Primitives](#primitives)
+- [Error Handling](#error-handling)
+  - [`Glitch` Objects](#glitch-objects)
+    - [_`Glitch`_`._message`](#glitch_message)
+    - [_`Glitch`_`._type`](#glitch_type)
+    - [_`Glitch`_`._line`](#glitch_line)
+    - [_`Glitch`_`.report()`](#glitchreport)
+    - [_`Glitch`_`.clone()`](#glitchclone)
+    - [_`Glitch`_`.line(ℓ)`](#glitchlineℓ)
+    - [_`Glitch`_`.type(𝑡)`](#glitchtype𝑡)
+  - [`GlitchType`](#glitchtype)
+
+
+</TOC>
+
+## Scanning
+### Tokens
+#### `TokenType`
+LEM implements token types with a TypeScript `enum` called `TokenType`. These tokens are listed in the table below (click to expand).
+
+<details>
+<summary>`TokenType` Table</summary>
+
+| `TokenType`     | Character(s)                            |
+| --------------- | --------------------------------------- |
+| `left_paren`    | `(`                                     |
+| `right_paren`   | `)`                                     |
+| `left_brace`    | `{`                                     |
+| `right_brace`   | `}`                                     |
+| `left_bracket`  | `[`                                     |
+| `right_bracket` | `]`                                     |
+| `comma`         | `,`                                     |
+| `dot`           | `.`                                     |
+| `minus`         | `-`                                     |
+| `plus`          | `+`                                     |
+| `semicolon`     | `;`                                     |
+| `slash`         | `/`                                     |
+| `star`          | `*`                                     |
+| `at`            | `@`                                     |
+| `bang`          | `!`                                     |
+| `pound`         | `#`                                     |
+| `percent`       | `%`                                     |
+| `caret`         | `^`                                     |
+| `ampersand`     | `&`                                     |
+| `equal`         | `=`                                     |
+| `tick`          | `'`                                     |
+| `eroteme`       | `?`                                     |
+| `less`          | `<`                                     |
+| `greater`       | `>`                                     |
+| `colon`         | `:`                                     |
+| `vbar`          | `\|`                                    |
+| `tilde`         | `~`                                     |
+| `colon_equal`   | `:=`                                    |
+| `bang_equal`    | `!=`                                    |
+| `equal_equal`   | `==`                                    |
+| `less_equal`    | `<=`                                    |
+| `greater_equal` | `>=`                                    |
+| `true`          | Boolean value "true"                    |
+| `false`         | Boolean value "false"                   |
+| `null`          | Literal value "null"                    |
+| `inf`           | Numeric value "infinity"                |
+| `nan`           | Non-real value "not a number"           |
+| `identifier`    | _See_ § Identifiers                     |
+| `string`        | _See_ § Strings                         |
+| `integer`       | _See_ § Integers                        |
+| `float`         | _See_ § Floats                          |
+| `fraction`      | _See_ § Fractions                       |
+| `complex`       | _See_ § Complex Numbers                 |
+| `not`           | _See_ § not Operator                    |
+| `and`           | _See_ § and Operator                    |
+| `nand`          | _See_ § nand Operator                   |
+| `or`            | _See_ § or Operator                     |
+| `nor`           | _See_ § nor Operator                    |
+| `xnor`          | _See_ § xnor Operator                   |
+| `->`            | _See_ § Implication Operator            |
+| `!->`           | _See_ § Nonimplication Operator         |
+| `<-`            | _See_ § Converse Operator               |
+| `!<-`           | _See_ § Nonconverse Operator            |
+| `<->`           | _See_ § Biconditional Operator          |
+| `class`         | Keyword. _See_ § Class Declarations     |
+| `fn`            | Keyword. _See_ § Function Declarations  |
+| `if`            | Keyword. _See_ § Conditional Statements |
+| `then`          | Keyword. _See_ § Conditional Statements |
+| `else`          | Keyword. _See_ § Conditional Statements |
+| `return`        | Keyword. _See_ § Return Statements      |
+| `super`         | Keyword. _See_ § `super` Calls          |
+| `this`          | Keyword. _See_ § `this` Pointers        |
+| `var`           | Keyword. _See_ § Variable Declarations  |
+| `const`         | Keyword. _See_ § Constant Declarations  |
+
+</details>
+
+
+
+### `Token` Objects
+LEM tokens are represented by `Token` objects. Below are its properties and methods.
+
+#### _`Token`_`._type`
+The LEM token's specific type. The value of this property is one of [TokenType](#tokentype).
+
+#### _`Token`_`._lexeme`
+The LEM token's lexeme. The value of this property is a string, corresponding to the lexeme scanned.
+
+#### _`Token`_`._literal`
+The LEM token's corresponding JavaScript value, if any. The value of this property is a [Primitive](#primitives). 
+
+#### _`Token`_`._line`
+A JavaScript _number_ corresponding to the line within the source code where the token was scanned.
+
+#### _`Token`_`.clone()`
+Returns a new instance of the token, with all the same properties. 
+
+#### _`Token`_`.type(𝑡)`
+Given a [TokenType](#tokentype) 𝑡, returns a new instance of the token with all the same properties, except the new instance's property [`_type`](#token_type) is now 𝑡.
+
+#### _`Token`_`.line(ℓ)`
+Given a JavaScript _number_ ℓ, returns a new instance of the token with all the same properties, except the new instance's [`_line`](#token_line) is now ℓ.
+
+#### _`Token`_`.lit(𝑝)`
+Given a [Primitive](#primitives) 𝑝, returns a new instance of the token with all the same properties, except the new instance's [`_literal`](#token_literal) property is now 𝑝.
+
+#### Primitives
+Within LEM's source code, the type `Primitive` is used to refer to the following JavaScript types:
+
+1. `string`
+2. `number`
+3. `null`
+4. `boolean`.
+
+## Error Handling
+LEM represents errors with `Glitch` objects. The following sections outline a `Glitch` object's properties and methods. 
+
+### `Glitch` Objects
+#### _`Glitch`_`._message`
+A JavaScript string corresponding to the `Glitch` object's message.
+
+#### _`Glitch`_`._type`
+The `Glitch` object's [type](#glitchtype).
+
+#### _`Glitch`_`._line`
+The line where the `Glitch` object was scanned on. The value of this property is a JavaScript _number_. 
+
+#### _`Glitch`_`.report()`
+Returns a JavaScript _string_ explaining the _Glitch_. In short, the `Glitch`'s error message with additional information in a pretty-print format.
+
+#### _`Glitch`_`.clone()`
+Returns a copy of the `Glitch` object.
+
+#### _`Glitch`_`.line(ℓ)`
+Given an argument ℓ (a JavaScript _number_), returns a copy of the `Glitch` with its [`_line` property](#glitch_line) set to ℓ. 
+
+#### _`Glitch`_`.type(𝑡)`
+Given an argument 𝑡 (a [`GlitchType`](#glitchtype)), returns a copy of the `Glitch` with its [`_type` property](#glitch_type) set to 𝑡.
+
+### `GlitchType`
+In LEM, `Glitch` objects can be one of five types: 
+
+1. `lexical-error`: A `Glitch` that occurred during the scanning or tokenization process.
+2. `syntax-error`: A `Glitch` that occurred during the parsing process.
+3. `type-error`: A `Glitch` that occurred during the type-checking process.
+4. `environment-error`: A `Glitch` that occurred during an environment lookup.
+5. `runtime-error`: A `Glitch` that occurred during the interpretation/execution process.
+
+
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}

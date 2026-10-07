@@ -12,6 +12,14 @@ export type Directory = DirectoryLink[];
 
 export const directory: Directory = [
   {
+    title: "Law",
+    isHeader: true,
+    children: [
+      {title: "Criminal Law", children: []},
+      {title: "Public Policy", children: []},
+    ]
+  },
+  {
     title: "Mathematics",
     isHeader: true,
     children: [
@@ -89,7 +97,12 @@ export const directory: Directory = [
                   {
                     title: "Complex Numbers",
                     isSubsection: true,
-                    children: [],
+                    children: [
+                      {title: "Complex Addition", isSubsection: true, children: []},
+                      {title: "Complex Multiplication", isSubsection: true, children: []},
+                      {title: "Properties of Complex Arithmetic", isSubsection: true, children: []},
+                      {title: "Complex Subtraction", isSubsection: true, children: []},
+                    ],
                   },
                   {
                     title: "Algebraic Numbers",
@@ -113,8 +126,15 @@ export const directory: Directory = [
             { title: "Solving Quadratic Equations", isSubsection: true, children: [] },
             { title: "The Quadratic Formula", isSubsection: true, children: [] },
           ]},
-          { title: "Foundational Logic", isSubsection: true, children: [] },
         ],
+      },
+      {
+        title: "Classical Logic",
+        children: [],
+      },
+      {
+        title: "Linear Algebra",
+        children: [],
       },
     ],
   },
@@ -122,8 +142,8 @@ export const directory: Directory = [
     title: "Computer Science",
     isHeader: true,
     children: [
-      { title: "LEM", children: [] },
-      { title: "Implementing LEM", children: [] },
+      // { title: "LEM", children: [] },
+      { title: "LEM Development", children: [] },
     ],
   },
   {
