@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="118.12842"
+   height="317.31152"
+   viewBox="0 0 118.12842 317.31152"
+   version="1.1"
+   id="svg9"
+   sodipodi:docname="compiler_flowchart.svg"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs9" />
+  <sodipodi:namedview
+     id="namedview9"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.97423341"
+     inkscape:cx="14.370273"
+     inkscape:cy="180.14164"
+     inkscape:window-width="1512"
+     inkscape:window-height="916"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg9"
+     showgrid="false">
+    <inkscape:grid
+       id="grid9"
+       units="px"
+       originx="-36.985255"
+       originy="-24.453515"
+       spacingx="1"
+       spacingy="0.99999999"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="false" />
+  </sodipodi:namedview>
+  <title
+     id="title1">Compiler pipeline flowchart</title>
+  <desc
+     id="desc1">Scanning, Parsing, Type-checking, and Executing in a vertical sequence.</desc>
+  <g
+     fill="#222222"
+     font-family="'CMU Serif', 'Computer Modern', serif"
+     font-size="19px"
+     text-anchor="middle"
+     id="g7"
+     transform="translate(-111.13525,-35.603516)">
+    <text
+       x="170"
+       y="49"
+       id="text4">Scanning</text>
+    <text
+       x="170"
+       y="149"
+       id="text5">Parsing</text>
+    <text
+       x="170"
+       y="249"
+       id="text6">Type-checking</text>
+    <text
+       x="170"
+       y="349"
+       id="text7">Executing</text>
+  </g>
+  <g
+     fill="none"
+     stroke="#222222"
+     stroke-width="1.7"
+     stroke-linecap="round"
+     stroke-linejoin="round"
+     id="g9"
+     transform="translate(-111.13525,-35.603516)">
+    <path
+       d="m 170,74 v 33 m -6,-7 6,7 6,-7"
+       id="path7" />
+    <path
+       d="m 170,174 v 33 m -6,-7 6,7 6,-7"
+       id="path8" />
+    <path
+       d="m 170,274 v 33 m -6,-7 6,7 6,-7"
+       id="path9" />
+  </g>
+</svg>

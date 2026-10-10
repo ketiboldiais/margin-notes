@@ -1,10 +1,14 @@
 import MdxLayout from "@/components/mdx-layout";
 
+
+import {COMPILER_FLOW} from "@/components/figures.lem.tsx";
+
 # LEM
 This page outlines LEM's development process. 
 
 <TOC>
 
+- [Weaver](#weaver)
 - [Scanning](#scanning)
   - [Tokens](#tokens)
     - [`TokenType`](#tokentype)
@@ -28,9 +32,18 @@ This page outlines LEM's development process.
     - [_`Glitch`_`.line(ℓ)`](#glitchlineℓ)
     - [_`Glitch`_`.type(𝑡)`](#glitchtype𝑡)
   - [`GlitchType`](#glitchtype)
+  - [`glitch(𝑚,𝑡,ℓ,𝑐)`](#glitch𝑚𝑡ℓ𝑐)
+- [Utilities](#utilities)
+  - [`print(𝑠)`](#print𝑠)
+- [Parsing](#parsing)
 
 
 </TOC>
+
+## Weaver
+To execute LEM code, the raw source code is fed to `Weave`, LEM's compiler. `Weave` runs the code through four stages: 
+
+<COMPILER_FLOW/>
 
 ## Scanning
 ### Tokens
@@ -179,6 +192,25 @@ In LEM, `Glitch` objects can be one of five types:
 3. `type-error`: A `Glitch` that occurred during the type-checking process.
 4. `environment-error`: A `Glitch` that occurred during an environment lookup.
 5. `runtime-error`: A `Glitch` that occurred during the interpretation/execution process.
+
+### `glitch(𝑚,𝑡,ℓ,𝑐)`
+This function creates and returns a new [`Glitch`](#glitch-objects). The function takes three arguments:
+
+1. `𝑚`: The Glitch's message (i.e., error message).
+2. `𝑡`: The Glitch's [type](#glitchtype).
+3. `ℓ`: The line where the `Glitch` occurred.
+4. `𝑐`: The column where the `Glitch` occurred.
+
+## Utilities
+Within LEM's source code are several utilities. This section documents those utilities.
+
+### `print(𝑠)`
+Given an `𝑠` of type `𝑇`, logs to the console and returns a string form of `source`. This function generates a pretty-print tree string for objects.
+
+## Parsing
+Once `Weaver` has scanned the LEM source code, the generated tokens are sent to the parser. The parser takes these tokens and constructs an _abstract syntax tree_ (_AST_). The AST, at the highest level, is a sequence of statements.
+
+
 
 
 

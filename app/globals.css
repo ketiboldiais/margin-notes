@@ -237,6 +237,7 @@ a {
   transition: background-size 0.3s, background-position 0s 0.3s; */
   color: rgb(51, 142, 180);
 }
+
 a:hover {
   color: blue;
   /* background-position: 100% 100%; */
@@ -811,3 +812,31 @@ em strong {
   font-weight: normal;
   text-decoration: underline;
 }
+
+/* Underline links on hover */
+a {
+  position: relative;
+  text-decoration: none;
+  /* color: #000000; */
+  display: inline-block; /* Required to correctly bound the underline width */
+}
+
+/* Create the underline block */
+a::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0); /* Start hidden at zero width */
+  height: 1px;
+  bottom: -1px;
+  left: 0;
+  background-color: var(--pencil);
+  transform-origin: bottom left; /* Determines direction of the reveal */
+  transition: transform 0.25s ease-out; /* Smooth transition effect */
+}
+
+/* Expand the underline on hover */
+a:hover::after {
+  transform: scaleX(1);
+}
+

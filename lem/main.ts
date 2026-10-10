@@ -1,15 +1,81 @@
-function print<T>(source: T) {
-  if (Array.isArray(source)) {
-    const out: string[] = [];
-    source.forEach((x) => {
-      if (x instanceof Token) {
-        const t = x.toString();
-        out.push(t.toString());
+export function print<T>(source: T) {
+  /** Returns a pretty-print tree of the given Object `Obj`. */
+  const treestring = <T extends object>(
+    Obj: T,
+    cbfn?: (node: unknown) => void,
+  ) => {
+    const prefix = (key: keyof T, last: boolean) => {
+      let str = last ? "└" : "├";
+      if (key) str += "─ ";
+      else str += "──┐";
+      return str;
+    };
+    const getKeys = (obj: T) => {
+      const keys: (keyof T)[] = [];
+      for (const branch in obj) {
+        if (!obj.hasOwnProperty(branch) || typeof obj[branch] === "function") {
+          continue;
+        }
+        keys.push(branch);
       }
-    });
-    const str = out.join("\n");
-    console.log(str);
-    return str;
+      return keys;
+    };
+    const grow = (
+      key: keyof T,
+      root: unknown,
+      last: boolean,
+      prevstack: [T, boolean][],
+      cb: (str: string) => unknown,
+    ) => {
+      if (cbfn) {
+        cbfn(root);
+      }
+      let line = "";
+      let index = 0;
+      let lastKey = false;
+      let circ = false;
+      const stack = prevstack.slice(0);
+      if (stack.push([root as T, last]) && stack.length > 0) {
+        prevstack.forEach(function (lastState, idx) {
+          if (idx > 0) line += (lastState[1] ? " " : "│") + "  ";
+          if (!circ && lastState[0] === root) circ = true;
+        });
+        line += prefix(key, last) + key.toString();
+        if (typeof root !== "object") line += ": " + root;
+        if (circ) {
+          line += " (circular ref.)";
+        }
+        cb(line);
+      }
+      if (!circ && typeof root === "object") {
+        const keys = getKeys(root as T);
+        keys.forEach((branch) => {
+          lastKey = ++index === keys.length;
+          grow(branch, (root as T)[branch], lastKey, stack, cb);
+        });
+      }
+    };
+    let output = "";
+    const obj = Object.assign({}, Obj);
+    grow(
+      "." as keyof T,
+      obj,
+      false,
+      [],
+      (line: string) => (output += line + "\n"),
+    );
+    return output;
+  };
+  if (source instanceof Left) {
+    source = source.unwrap();
+  }
+  if (source instanceof Right) {
+    source = source.unwrap();
+  }
+  if (Array.isArray(source)) {
+    source = treestring(source as object) as T;
+    console.log(source);
+    return source;
   }
   if (source instanceof Glitch) {
     const str = source.report();
@@ -19,6 +85,7 @@ function print<T>(source: T) {
   console.log(source);
   return source;
 }
+
 /* eslint-disable prefer-const */
 enum TokenType {
   // Single-character tokens
@@ -280,9 +347,9 @@ class Token {
         return "unknown";
     }
   }
-	static empty() {
-		return new Token(TokenType.nil, "nil", 0, 0, null);
-	}
+  static empty() {
+    return new Token(TokenType.nil, "nil", 0, 0, null);
+  }
   static tokenTypeString(type: TokenType): string {
     return Token.tokenTypeName(type);
   }
@@ -704,6 +771,7 @@ function scan(program: string) {
       current = scanOperator(line, current, lineNumber);
     }
     tokens.push(token(TokenType.newline, "", lineNumber, current + 1));
+    tokens.push(token(TokenType.eof, "", lineNumber, current + 1));
   };
 
   const tokenize = () => {
@@ -723,75 +791,184 @@ function scan(program: string) {
   }
 }
 
-print(scan(`
-12
-`));
+/** An enumeration of node kinds. */
+enum nodekind {
+  class_statement,
+  block_statement,
+  expression_statement,
+  negation_expression,
+  positivization_expression,
+  function_declaration,
+  variable_declaration,
+  if_statement,
+  print_statement,
+  return_statement,
+  algebraic_binex,
+  vector_binex,
+  while_statement,
+  algebra_string,
+  tuple_expression,
+  vector_expression,
+  matrix_expression,
+  factorial_expression,
+  assignment_expression,
+  parend_expression,
+  string_concatenation,
+  not_expression,
+  native_call,
+  call_expression,
+  numeric_constant,
+  symbol,
+  logical_binex,
+  let_expression,
+  get_expression,
+  set_expression,
+  super_expression,
+  this_expression,
+  relation_expression,
+  index_expression,
+  string,
+  bool,
+  integer,
+  big_integer,
+  scientific_number,
+  float,
+  frac,
+  nil,
+  unary_plus,
+}
 
 interface Visitor<T> {
-	handleInteger(node: Integer): T;
+  handleInteger(node: Integer): T;
   handleNil(node: Nil): T;
+  handleExpressionStatement(node: ExpressionStatement): T;
+  handleNegation(node: Negation): T;
+  handleUnaryPlus(node: UnaryPlus): T;
 }
 
 abstract class ASTNode {
-	abstract accept<T>(visitor: Visitor<T>): T;
-	abstract toString(): string;
-	abstract isStatement(): this is Statement; 
-	abstract isExpression(): this is Expression;
+  abstract accept<T>(visitor: Visitor<T>): T;
+  abstract toString(): string;
+  abstract isStatement(): this is Statement;
+  abstract isExpression(): this is Expression;
+  abstract kind(): nodekind;
 }
 
 abstract class Statement extends ASTNode {
-	isStatement(): this is Statement {
-		return true;
-	}
-	isExpression(): this is Expression {
-		return false;
-	}
+  isStatement(): this is Statement {
+    return true;
+  }
+  isExpression(): this is Expression {
+    return false;
+  }
+}
+
+class ExpressionStatement extends Statement {
+  toString(): string {
+    return "expression-statement";
+  }
+  kind(): nodekind {
+    return nodekind.expression_statement;
+  }
+  expression: Expression;
+  constructor(expression: Expression) {
+    super();
+    this.expression = expression;
+  }
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.handleExpressionStatement(this);
+  }
 }
 
 abstract class Expression extends ASTNode {
-	isStatement(): this is Statement {
-		return false;
-	}
-	isExpression(): this is Expression {
-		return true;
-	}
+  isStatement(): this is Statement {
+    return false;
+  }
+  isExpression(): this is Expression {
+    return true;
+  }
 }
 
 class Integer extends Expression {
-	value: number;
-	constructor(value: number) {
-		super();
-		this.value = value;
-	}
-	accept<T>(visitor: Visitor<T>): T {
-		return visitor.handleInteger(this);
-	}
-	toString(): string {
-		return this.value.toString();
-	}
+  value: number;
+  constructor(value: number) {
+    super();
+    this.value = value;
+  }
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.handleInteger(this);
+  }
+  toString(): string {
+    return this.value.toString();
+  }
+  kind(): nodekind {
+    return nodekind.integer;
+  }
 }
-
-
 
 class Nil extends Expression {
-	accept<T>(visitor: Visitor<T>): T {
-		return visitor.handleNil(this);
-	}
-	toString(): string {
-    return 'null';
-	}
-	value: null = null;
-	constructor() {	
-		super();
-	}
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.handleNil(this);
+  }
+  toString(): string {
+    return "null";
+  }
+  value: null = null;
+  constructor() {
+    super();
+  }
+  kind(): nodekind {
+    return nodekind.nil;
+  }
 }
 
-
-const expr = {
-	int: (value: number) => new Integer(value),
-  nil: () => new Nil()
+class Negation extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.handleNegation(this);
+  }
+  kind(): nodekind {
+    return nodekind.negation_expression;
+  }
+  toString(): string {
+    return `-${this._arg.toString()}`;
+  }
+  _op: Token;
+  _arg: Expression;
+  constructor(op: Token, arg: Expression) {
+    super();
+    this._op = op;
+    this._arg = arg;
+  }
 }
 
+class UnaryPlus extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.handleUnaryPlus(this);
+  }
+  toString(): string {
+    return `+${this._arg.toString()}`;
+  }
+  kind(): nodekind {
+    return nodekind.unary_plus;
+  }
+  _op: Token;
+  _arg: Expression;
+  constructor(op: Token, arg: Expression) {
+    super();
+    this._op = op;
+    this._arg = arg;
+  }
+}
+
+const node = {
+  int: (value: number) => new Integer(value),
+  nil: () => new Nil(),
+  negation: (op: Token, arg: Expression) => new Negation(op, arg),
+  unaryPlus: (op: Token, arg: Expression) => new UnaryPlus(op, arg),
+  stmt: {
+    expression: (expression: Expression) => new ExpressionStatement(expression),
+  },
+};
 
 type Either<A, B> = Left<A> | Right<B>;
 
@@ -879,36 +1056,45 @@ enum BP {
 }
 
 type Parslet<T> = (current: Token, lastNode: T) => Either<Glitch, T>;
-type ParsletEntry<T> = [Parslet<T>, Parslet<T>, BP]
+type ParsletEntry<T> = [Parslet<T>, Parslet<T>, BP];
 type BPTable<T> = Record<TokenType, ParsletEntry<T>>;
 
-	
-class ParsetateState<T> {
-	_error: Glitch | null;
-	_tokens: Token[] = [];
-	_prev: Token = Token.empty();
-	_current: Token = Token.empty();
-	_lastExpression: Expression;
-	_currentExpression: Expression;
-	init(source: string) {
-		const tokens = scan(source);
-		if (tokens instanceof Glitch) {
-			this._error = tokens;
-		} else {
-			this._tokens = tokens;
-		}
-		return this;
-	}
-	constructor(lastExpression: Expression, currentExpression: Expression) {
-		this._error = null;
-		this._lastExpression = lastExpression;
-		this._currentExpression = currentExpression;
-	}
-	error(message: string, type: GlitchType, line: number, column: number): Left<Glitch> {
-		const err = new Glitch(message, type, line, column);
-		this._error = err;
-		return left(err);
-	}
+class ParsetateState {
+  _error: Glitch | null;
+  _tokens: Token[] = [];
+  _cursor: number = -1;
+  _prev: Token = Token.empty();
+  _current: Token = Token.empty();
+  _peek: Token = Token.empty();
+  _lastExpression: Expression;
+  _currentExpression: Expression;
+  _lastStatement: nodekind = nodekind.nil;
+  _currentStatement: nodekind = nodekind.nil;
+  init(source: string) {
+    const tokens = scan(source);
+    if (tokens instanceof Glitch) {
+      this._error = tokens;
+    } else {
+      this._tokens = tokens;
+      this.next();
+    }
+    return this;
+  }
+  constructor(lastExpression: Expression, currentExpression: Expression) {
+    this._error = null;
+    this._lastExpression = lastExpression;
+    this._currentExpression = currentExpression;
+  }
+  error(
+    message: string,
+    type: GlitchType,
+    line: number,
+    column: number,
+  ): Left<Glitch> {
+    const err = new Glitch(message, type, line, column);
+    this._error = err;
+    return left(err);
+  }
   expression(expr: Expression) {
     const prev = this._currentExpression;
     this._currentExpression = expr;
@@ -916,101 +1102,233 @@ class ParsetateState<T> {
     return right(expr);
   }
   statement(stmt: Statement) {
+    const prev = this._currentStatement;
+    this._currentStatement = stmt.kind();
+    this._lastStatement = prev;
+    return right(stmt);
+  }
+  next() {
+    this._cursor++;
+    this._current = this._peek;
+    const nextToken = this._tokens[this._cursor];
+    if (nextToken !== undefined) {
+      this._peek = nextToken;
+      return this._current;
+    } else {
+      return Token.empty();
+    }
+  }
+  atEnd() {
+    return this._peek._type === TokenType.eof || this._error !== null;
+  }
+  check(type: TokenType) {
+    if (this.atEnd()) {
+      return false;
+    }
+    return this._peek._type === type;
+  }
+  nextIs(type: TokenType) {
+    if (this._peek._type === type) {
+      this.next();
+      return true;
+    }
+    return false;
   }
 }
 
-function parse(tokens: Token[]) {
-	const state = new ParsetateState<Expression>(expr.nil(), expr.nil());
-	const ___o = BP.nil;
-	const ____: Parslet<Expression> = (token) => {
-		if (state._error !== null) {
-			return left(state._error);
-		} else {
-			return state.error(`Unexpected token: ${token.toString()}`, "syntax-error", token._line, token._column);
-		}
-	}
-	
+function ast(source: string) {
+  const state = new ParsetateState(node.nil(), node.nil()).init(source);
+  const ___o = BP.nil;
+  const ____: Parslet<Expression> = (token) => {
+    if (state._error !== null) {
+      return left(state._error);
+    } else {
+      return state.error(
+        `Unexpected token: ${token.toString()}`,
+        "syntax-error",
+        token._line,
+        token._column,
+      );
+    }
+  };
 
-	const rules: BPTable<Expression> = {
-		[TokenType.left_paren]: [____, ____, ___o],
-		[TokenType.right_paren]: [____, ____, ___o],
-		[TokenType.left_brace]: [____, ____, ___o],
-		[TokenType.right_brace]: [____, ____, ___o],
-		[TokenType.left_bracket]: [____, ____, ___o],
-		[TokenType.right_bracket]: [____, ____, ___o],
-		[TokenType.comma]: [____, ____, ___o],
-		[TokenType.dot]: [____, ____, ___o],
-		[TokenType.minus]: [____, ____, ___o],
-		[TokenType.plus]: [____, ____, ___o],
-		[TokenType.semicolon]: [____, ____, ___o],
-		[TokenType.slash]: [____, ____, ___o],
-		[TokenType.star]: [____, ____, ___o],
-		[TokenType.at]: [____, ____, ___o],
-		[TokenType.bang]: [____, ____, ___o],
-		[TokenType.pound]: [____, ____, ___o],
-		[TokenType.percent]: [____, ____, ___o],
-		[TokenType.caret]: [____, ____, ___o],
-		[TokenType.ampersand]: [____, ____, ___o],
-		[TokenType.equal]: [____, ____, ___o],
-		[TokenType.tick]: [____, ____, ___o],
-		[TokenType.eroteme]: [____, ____, ___o],
-		[TokenType.less]: [____, ____, ___o],
-		[TokenType.greater]: [____, ____, ___o],
-		[TokenType.colon]: [____, ____, ___o],
-		[TokenType.vbar]: [____, ____, ___o],
-		[TokenType.tilde]: [____, ____, ___o],
-		[TokenType.indent]: [____, ____, ___o],
-		[TokenType.dedent]: [____, ____, ___o],
-		[TokenType.bang_equal]: [____, ____, ___o],
-		[TokenType.equal_equal]: [____, ____, ___o],
-		[TokenType.less_equal]: [____, ____, ___o],
-		[TokenType.greater_equal]: [____, ____, ___o],
-		[TokenType.identifier]: [____, ____, ___o],
-		[TokenType.string]: [____, ____, ___o],
-		[TokenType.integer]: [____, ____, ___o],
-		[TokenType.float]: [____, ____, ___o],
-		[TokenType.complex]: [____, ____, ___o],
-		[TokenType.fraction]: [____, ____, ___o],
-		[TokenType.not]: [____, ____, ___o],
-		[TokenType.and]: [____, ____, ___o],
-		[TokenType.nand]: [____, ____, ___o],
-		[TokenType.or]: [____, ____, ___o],
-		[TokenType.nor]: [____, ____, ___o],
-		[TokenType.xnor]: [____, ____, ___o],
-		[TokenType.imply]: [____, ____, ___o],
-		[TokenType.nimply]: [____, ____, ___o],
-		[TokenType.converse]: [____, ____, ___o],
-		[TokenType.nonconverse]: [____, ____, ___o],
-		[TokenType.iff]: [____, ____, ___o],
-		[TokenType.true]: [____, ____, ___o],
-		[TokenType.false]: [____, ____, ___o],
-		[TokenType.nil]: [____, ____, ___o],
-		[TokenType.nan]: [____, ____, ___o],
-		[TokenType.inf]: [____, ____, ___o],
-		[TokenType.class]: [____, ____, ___o],
-		[TokenType.if]: [____, ____, ___o],
-		[TokenType.else]: [____, ____, ___o],
-		[TokenType.return]: [____, ____, ___o],
-		[TokenType.super]: [____, ____, ___o],
-		[TokenType.this]: [____, ____, ___o],
-		[TokenType.var]: [____, ____, ___o],
-		[TokenType.const]: [____, ____, ___o],
-		[TokenType.let]: [____, ____, ___o],
-		[TokenType.fn]: [____, ____, ___o],
-		[TokenType.eof]: [____, ____, ___o],
-		[TokenType.newline]: [____, ____, ___o],
-	}
+  const parse = {
+    prefix: (op: Token) => {
+      const p = precof(op._type);
+      const a = parseExpression(p);
+      if (a.isLeft()) return a;
+      const arg = a.unwrap();
+      if (op._type === TokenType.minus) {
+        return state.expression(node.negation(op, arg));
+      } else if (op._type === TokenType.plus) {
+        return state.expression(node.unaryPlus(op, arg));
+      } else {
+        return state.error(
+          `Unknown prefix operator: ${op._lexeme}`,
+          "syntax-error",
+          op._line,
+          op._column,
+        );
+      }
+    },
+    number: (t: Token) => {
+      if (t._type === TokenType.integer) {
+        const n = Number.parseInt(t._lexeme);
+        const out = state.expression(node.int(n));
+        return out;
+      }
+      if (t._type === TokenType.float) {
+        const n = Number.parseFloat(t._lexeme);
+      }
+      return state.error(
+        `Expected a number, but got "${t._lexeme}"`,
+        "lexical-error",
+        t._line,
+        t._column,
+      );
+    },
+  };
 
-	/** Returns the precedence of the given token type. */
-	const precof = (t: TokenType) => rules[t][2];
+  const rules: BPTable<Expression> = {
+    [TokenType.left_paren]: [____, ____, ___o],
+    [TokenType.right_paren]: [____, ____, ___o],
+    [TokenType.left_brace]: [____, ____, ___o],
+    [TokenType.right_brace]: [____, ____, ___o],
+    [TokenType.left_bracket]: [____, ____, ___o],
+    [TokenType.right_bracket]: [____, ____, ___o],
+    [TokenType.comma]: [____, ____, ___o],
+    [TokenType.dot]: [____, ____, ___o],
+    [TokenType.minus]: [parse.prefix, ____, ___o],
+    [TokenType.plus]: [parse.prefix, ____, ___o],
+    [TokenType.semicolon]: [____, ____, ___o],
+    [TokenType.slash]: [____, ____, ___o],
+    [TokenType.star]: [____, ____, ___o],
+    [TokenType.at]: [____, ____, ___o],
+    [TokenType.bang]: [____, ____, ___o],
+    [TokenType.pound]: [____, ____, ___o],
+    [TokenType.percent]: [____, ____, ___o],
+    [TokenType.caret]: [____, ____, ___o],
+    [TokenType.ampersand]: [____, ____, ___o],
+    [TokenType.equal]: [____, ____, ___o],
+    [TokenType.tick]: [____, ____, ___o],
+    [TokenType.eroteme]: [____, ____, ___o],
+    [TokenType.less]: [____, ____, ___o],
+    [TokenType.greater]: [____, ____, ___o],
+    [TokenType.colon]: [____, ____, ___o],
+    [TokenType.vbar]: [____, ____, ___o],
+    [TokenType.tilde]: [____, ____, ___o],
+    [TokenType.indent]: [____, ____, ___o],
+    [TokenType.dedent]: [____, ____, ___o],
+    [TokenType.bang_equal]: [____, ____, ___o],
+    [TokenType.equal_equal]: [____, ____, ___o],
+    [TokenType.less_equal]: [____, ____, ___o],
+    [TokenType.greater_equal]: [____, ____, ___o],
+    [TokenType.identifier]: [____, ____, ___o],
+    [TokenType.string]: [____, ____, ___o],
+    [TokenType.integer]: [parse.number, ____, ___o],
+    [TokenType.float]: [____, ____, ___o],
+    [TokenType.complex]: [____, ____, ___o],
+    [TokenType.fraction]: [____, ____, ___o],
+    [TokenType.not]: [____, ____, ___o],
+    [TokenType.and]: [____, ____, ___o],
+    [TokenType.nand]: [____, ____, ___o],
+    [TokenType.or]: [____, ____, ___o],
+    [TokenType.nor]: [____, ____, ___o],
+    [TokenType.xnor]: [____, ____, ___o],
+    [TokenType.imply]: [____, ____, ___o],
+    [TokenType.nimply]: [____, ____, ___o],
+    [TokenType.converse]: [____, ____, ___o],
+    [TokenType.nonconverse]: [____, ____, ___o],
+    [TokenType.iff]: [____, ____, ___o],
+    [TokenType.true]: [____, ____, ___o],
+    [TokenType.false]: [____, ____, ___o],
+    [TokenType.nil]: [____, ____, ___o],
+    [TokenType.nan]: [____, ____, ___o],
+    [TokenType.inf]: [____, ____, ___o],
+    [TokenType.class]: [____, ____, ___o],
+    [TokenType.if]: [____, ____, ___o],
+    [TokenType.else]: [____, ____, ___o],
+    [TokenType.return]: [____, ____, ___o],
+    [TokenType.super]: [____, ____, ___o],
+    [TokenType.this]: [____, ____, ___o],
+    [TokenType.var]: [____, ____, ___o],
+    [TokenType.const]: [____, ____, ___o],
+    [TokenType.let]: [____, ____, ___o],
+    [TokenType.fn]: [____, ____, ___o],
+    [TokenType.eof]: [____, ____, ___o],
+    [TokenType.newline]: [____, ____, ___o],
+  };
 
-	/** Returns the prefix parselet for the given token type. */
-	const prefixRule = (t: TokenType) => rules[t][0];
+  /** Returns the precedence of the given token type. */
+  const precof = (t: TokenType) => rules[t][2];
 
-	/** Returns the infix parselet for the given token type. */
-	const infixRule = (t: TokenType) => rules[t][1];
+  /** Returns the prefix parselet for the given token type. */
+  const prefixRule = (t: TokenType) => rules[t][0];
 
-	const parseExpr = (minbp: number = BP.lowest): Either<Glitch, Expression> => {
-		
-	}
+  /** Returns the infix parselet for the given token type. */
+  const infixRule = (t: TokenType) => rules[t][1];
+
+  const parseExpression = (
+    minbp: number = BP.lowest,
+  ): Either<Glitch, Expression> => {
+    let token = state.next();
+    const pre = prefixRule(token._type);
+    let lhs = pre(token, node.nil());
+    if (lhs.isLeft()) {
+      return lhs;
+    }
+    while (minbp < precof(state._peek._type)) {
+      token = state.next();
+      const r = infixRule(token._type);
+      const rhs = r(token, lhs.unwrap());
+      if (rhs.isLeft()) {
+        return rhs;
+      }
+      lhs = rhs;
+    }
+    return lhs;
+  };
+
+  const parseExpressionStatement = () => {
+    const out = parseExpression();
+    if (out.isLeft()) {
+      return out;
+    }
+    const e = out.unwrap();
+    if (state.nextIs(TokenType.newline) || state.nextIs(TokenType.newline)) {
+      return state.statement(node.stmt.expression(e));
+    } else {
+      return state.error(
+        `Expected newline or ";" to end the statement`,
+        "syntax-error",
+        state._current._line,
+        state._current._column,
+      );
+    }
+  };
+
+  const parseStatement = () => {
+    return parseExpressionStatement();
+  };
+
+  // main body the parser
+  if (state._error !== null) {
+    return left(state._error);
+  } else {
+    const statements: Statement[] = [];
+    while (!state.atEnd()) {
+      const statement = parseStatement();
+      if (statement.isLeft()) {
+        return statement.unwrap();
+      } else {
+        statements.push(statement.unwrap());
+      }
+    }
+    return right(statements);
+  }
 }
+
+const result = ast(`
+-5
+`);
+print(result);
