@@ -22,6 +22,16 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         </div>
       );
     },
+    Timelist: (props) => (
+      <div className="timelist">
+        {props.children}
+      </div>
+    ),
+    CaseTitle: (props) => (
+      <div className="case-title">
+        {props.children}
+      </div>
+    ),
     Example: (props) => (
       <div className="example-block">
         <span className="example-header">example</span>

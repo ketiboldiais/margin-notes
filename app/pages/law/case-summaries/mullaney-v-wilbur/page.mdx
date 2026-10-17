@@ -1,0 +1,77 @@
+import MdxLayout from "@/components/mdx-layout";
+import {MULLANEY_FLOWCHART, MULLANEY_V_WILBUR_CARTOON} from "@/components/figures.law.tsx";
+
+<CaseTitle>
+
+# Mullaney v. Wilbur
+421 U.S. 684 (1975)
+
+</CaseTitle>
+
+<MULLANEY_V_WILBUR_CARTOON/>
+
+<TOC>
+
+- [Facts](#facts)
+- [Procedural History](#procedural-history)
+  - [Main Superior Court](#main-superior-court)
+  - [Main Supreme Judicial Court](#main-supreme-judicial-court)
+  - [Federal District Court](#federal-district-court)
+
+</TOC>
+
+## Facts
+On January 30, 1966, Roger Wilbur met Claude Hebert at hotel room in Maine. Wilbur claimed that Hebert made an unwanted homosexual advance on Wilbur. Fueled with rage, Wilbur beat Hebert to death. The beating was prolonged—Wilbur used his fists and a blunt instrument, painting the scene with blood spatter and stains. The police arrested Hebert, and the State of Maine charged Wilbur with murder.
+
+## Procedural History 
+Below is the timeline of this case.
+
+<Timelist>
+
+1. __1966: Main Superior Court__
+   - Convicted of murder.
+   - Wilbur appeals.
+2. __1971: Main Supreme Judicial Court__
+   - Wilbur's appeal to the state supreme court is denied; conviction affirmed.
+3. __1972: Federal District Court of Maine__
+   - Wilbur requests federal habeas corpus.
+   - Federal district court finds for Wilbur.
+   - Maine appeals.
+4. __1973–1974: First Circuit Court of Appeals__
+   - First circuit finds for Wilbur.
+   - Maine requests a writ of certiorari. 
+5. __1975: U.S. Supreme Court__
+   - U.S. Supreme Court grants certiorari. 
+   - U.S. Supreme Court finds for Wilbur.
+
+</Timelist>
+
+### Main Superior Court
+The state charged Wilbur with murder. Under Maine law, murder is "an unlawful, intentional killing committed with malice aforethought. Pertinent to this case was its distinction from manslaughter: An unlawful, intentional killing committed in the heat of passion on sudden provcation.   
+
+At trial, Wilbur's counsel presented two arguments against the state:
+
+1. __Lack of criminal intent__. Wilbur did not intend to kill Hebert. Because Wilbur lacked the intent, the killing did not constitute murder under Maine law.
+2. __Heat of passion__. Even if the jury concluded that Wilbur committed an intentional killing, the offense should be manslaughter instead of murder because Wilbur acted in the heat of passion—he was suddenly provoked by Hebert's homosexual advance.
+
+Under Maine law, if the state proved an intentional and unlawful killing, then the factfinder may presume the defendant had malice aforethought. To reduce the offense from murder to manslaughter, the defendant must prove, by a preponderance of the evidence, that they acted in the heat of passion on sudden provocation.  
+
+<MULLANEY_FLOWCHART/>
+
+Following this law, the trial judge instructed the jury that while malice aforethought was a required element for murder, the element is conclusively implied from an intentional and unlawful killing, _unless_ Wilbur established heat of passion on sudden provocation by a preponderance of the evidence. The jury did not find that Wilbur did not meet his burden, and found Wilbur guilty of murder.  
+
+### Main Supreme Judicial Court
+On appeal, Wilbur challenged the trial judge's burden-of-proof instruction as unconstitutional, violating his right to due process. The state supreme court upheld Maine's law, reasoning that Maine could assign the defendant the burden of proving the mitigating circumstance of heat of passion.
+
+<aside>
+Wilbur appealed directly to the Main Supreme Judicial Court (the state supreme court) because Maine does not have an intermediate court of appeals.
+</aside>
+
+### Federal District Court
+After the state supreme court affirmed his conviction, Wilbur sought federal habeas corpus relief under 28 U.S.C. § 2254, challenging the constitutionality of his state imprisonment.
+
+
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}

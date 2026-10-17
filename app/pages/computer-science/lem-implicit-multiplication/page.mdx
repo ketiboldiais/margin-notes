@@ -1,0 +1,121 @@
+import MdxLayout from "@/components/mdx-layout";
+
+# Dealing with Implicit Multiplication
+
+Writing a programming language is time consuming. The field is littered with time sinks: What should the syntax be for comments? What should the language be called? Does it need explicit typing? The time sinks all make for great learning opportunities. In this article, I will focus on one particularly deep sink: How do I implement implicit multiplication?
+
+<TOC>
+
+- [What Is Implicit Multiplication?](#what-is-implicit-multiplication)
+- [Recognizing the Cases](#recognizing-the-cases)
+  - [The Number-Identifier Case](#the-number-identifier-case)
+  - [The Number-Parenthesis Case](#the-number-parenthesis-case)
+  - [The Identifier-identifier Case](#the-identifier-identifier-case)
+  - [The Identifier Parenthesis Case](#the-identifier-parenthesis-case)
+  - [The Parenthesis-Parenthesis Case](#the-parenthesis-parenthesis-case)
+  - [Parenthesis-Identifier](#parenthesis-identifier)
+
+</TOC>
+
+## What Is Implicit Multiplication?
+Implicit multiplication is the convention of writing mathematical expressions next to each other without a visible multiplication symbol. For example, one might write:
+
+$$
+    \LARGE {2x}
+$$
+
+instead of
+
+$$
+    \LARGE {2 \times x}.
+$$
+
+It comes in many forms:
+
+
+$$
+    \LARGE {(x + 1)(x - 2)}, \\[1em]
+    \LARGE {3(x + 1)}, \\[1em]
+    \LARGE {2x^2 - 3x + 1}.
+$$
+
+The convention's been around in some form for the better half of a millenium. A manuscript found near Bakhshali, India—dating anywhere from the eighth to tenth century—show products indicated by placing numbers side by side.[^cajori_1] Manuscripts by the Moorish mathematician Al-Qalasadi from the 1400s show numbers and variables juxtapositioned to denote products.[^cajori_2] 
+
+In hindsight, the convention's undoubtedly attractive. Multiplication is a common operation. Why write ${(2 \times n) + 1}$ over and over again, when one can simply write ${2n + 1?}$ Only when we start implementing this convention on a computer does the attraction fade. 
+
+[^cajori_1]: Florian Cajori, _A History of Mathematical Notations_ vol. 1, at 78 (1928).
+[^cajori_2]: _Id_. at 230.
+
+## Recognizing the Cases
+Let's start by looking at some cases, each with varying levels of ambiguity.
+
+### The Number-Identifier Case
+The simplest and most obvious case is an expression of the form
+
+$$
+    \fbox{\texttt{number}}~\fbox{\texttt{identifier}}.
+$$
+
+The expression ${2n}$ follows this pattern. Assuming the language does not allow identifiers to begin with a number, this is a great case for implicit multiplication—it doesn't conflict with some existing rule.
+
+### The Number-Parenthesis Case
+In this case, the pattern takes the form:
+
+$$
+    \fbox{\texttt{number}} ~\fbox{\texttt{(}} ~ \fbox{\texttt{expression}}~\fbox{\texttt{)}}
+$$
+
+For example, the expression ${2(x + 1)}$ follows this pattern. Again, another great case for implicit multiplication because it doesn't conflict with some existing rule.
+
+### The Identifier-identifier Case
+Here's the first problematic pattern:
+
+$$
+    \fbox{\texttt{identifier}}~\fbox{\texttt{identifier}}.
+$$
+
+This is a fairly common pattern in written mathematics. For example ${2xy}$ follows this pattern. The trouble is, a computer builds tokens character by character. Is the sequence `xy` two distinct identifiers juxtaposed (i.e., `x` and `y` in implicit multiplication) or is it a single identifier `xy`? 
+
+### The Identifier Parenthesis Case
+Another common pattern:
+
+$$
+    \fbox{\texttt{identifier}}~\fbox{\texttt{(}}~\fbox{\texttt{expression}}~\fbox{\texttt{)}}.
+$$
+
+For example, ${a(b + 1).}$ Yet again ambiguity strikes: ${f(x)}$ also follows this pattern. Does ${f(x)}$ mean ${f \times x,}$ or is it a function call? Mathematical convention leans towards the former, but a computer doesn't lean unless we explicitly tell it to.
+
+### The Parenthesis-Parenthesis Case
+Here's another fairly common pattern:
+
+$$
+    \fbox{\texttt{(}}~
+    \fbox{\texttt{expression}}~
+    \fbox{\texttt{)}}~
+    \fbox{\texttt{(}}~
+    \fbox{\texttt{expression}}~
+    \fbox{\texttt{)}}
+$$
+
+The expression ${(a + b)(c + d)}$ follows this pattern. The ambiguity in this pattern isn't so obvious unless you work with functional programming often. Given the expression ${(u)(v),}$ where ${u}$ and ${v}$ are expressions, what happens if ${u}$ is a function that returns a function? For example, consider the following TypeScript code:  
+
+~~~ts showLineNumbers
+const f = (a: number) => (b: number) => a + b;
+const x = f(3)(2); // 5
+~~~
+
+On line ${1,}$ the function ${f}$ is a function that takes a number and returns a function that adds that number to its argument. Thus, on line ${2,}$ the expression `f(3)(2)` evalutes to ${5,}$ rather than something strange like ${\texttt{f} \times 3 \times 2}$.   
+
+### Parenthesis-Identifier
+The pattern:
+
+$$
+    \fbox{\lpar} ~ \fbox{expression} ~ \fbox{\rpar} ~ \fbox{symbol}
+$$
+
+For example: ${(x + 1)y.}$ This one's an unambiguous case for implicit multiplication. 
+
+
+export default function MDXPage({ children }) {
+    return <MdxLayout>{children}</MdxLayout>
+}

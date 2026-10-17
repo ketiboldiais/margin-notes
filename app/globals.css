@@ -70,7 +70,7 @@
   /* font-style: normal; */
 }
 
-html { font-size: 13px; }
+html { font-size: 15px; }
 
 body {
   font-family: 'tp';
@@ -315,10 +315,7 @@ h6 + p {
 }
 
 pre {
-  border-top: solid 1px var(--pencil);
-  border-bottom: solid 1px var(--pencil);
-  padding: 0.75% 0.1em;
-  overflow-x: scroll;
+  border: solid 1px var(--pencil);
 }
 
 th {
@@ -560,23 +557,27 @@ nav {
     margin-top: 1rem;
   }
   article {
-    margin-left: 20vw;
+    position: relative;
+    /* margin-left: 20vw; */
     /* width: 80%; */
   }
   .article-main {
-    margin: 0 auto;
+    /* margin: 0 auto; */
   }
   .toc {
-    background-color: var(--background);
+    position: fixed;
+    top: 50%;
+    transform: translate(-130%, -50%);
+    border-right: thin solid var(--blockquote-bg);
     z-index: 100;
+    /* background-color: var(--background);
     position: fixed;
     float: left;
     margin-left: -24.5vw;
-    margin-top: -15vh;
-    border-right: thin solid var(--blockquote-bg);
-    height: 90vh;
+    margin-top: -12%;
+    height: 95vh;
     padding: 1vh 0.5vw;
-    width: 22vw;
+    width: 22vw; */
   }
   .toc > ul {
     border-top: thin solid var(--blockquote-bg);
@@ -750,10 +751,6 @@ details p:first-child {
   margin-top: 0;
 }
 
-pre code {
-  font-size: 0.8rem;
-}
-
 code.language-ts .hljs-keyword {
   font-weight: bold;
 }
@@ -840,3 +837,37 @@ a:hover::after {
   transform: scaleX(1);
 }
 
+
+/* Pre block styling */
+[data-rehype-pretty-code-figure] pre {
+  padding: 0.5rem 0.6rem;
+  overflow-x: auto;
+  /* border-radius: 0.5rem; */
+  background-color: white;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.5rem !important;
+}
+
+.case-title {
+  text-align: center;
+}
+
+.case-title h1 {
+  margin-bottom: 0;
+}
+
+.case-title p {
+  margin: 0;
+}
+
+.timelist ol {
+  list-style: circle;
+}
+
+.timelist ol ul {
+  border-left: solid thin var(--pencil);
+  list-style: none;
+  padding: 0;
+  padding-left: 1em;
+  margin-left: -2.1%;
+}

@@ -3,5 +3,7 @@ import { Img } from "./Img";
 
 
 export const COMPILER_FLOW = () => (
-    <Img url={compiler_flow} width={70} alt="Compiler flow chart."/>
+    <Img url={compiler_flow} width={90} alt="Compiler flow chart."/>
 )
+
+

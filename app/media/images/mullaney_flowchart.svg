@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="942.14404"
+   height="822.60059"
+   viewBox="0 0 942.14404 822.60058"
+   version="1.1"
+   id="svg24"
+   sodipodi:docname="mullaney_flowchart.svg"
+   inkscape:version="1.4 (e7c3feb1, 2024-10-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview24"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="0.48"
+     inkscape:cx="479.16667"
+     inkscape:cy="210.41667"
+     inkscape:window-width="3440"
+     inkscape:window-height="1387"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg24">
+    <inkscape:grid
+       id="grid24"
+       units="px"
+       originx="-69.731689"
+       originy="-58.96289"
+       spacingx="1"
+       spacingy="1"
+       empcolor="#0099e5"
+       empopacity="0.30196078"
+       color="#0099e5"
+       opacity="0.14901961"
+       empspacing="5"
+       enabled="true"
+       visible="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1">
+    <marker
+       id="arrow"
+       viewBox="0 0 10 10"
+       refX="9"
+       refY="5"
+       markerWidth="8"
+       markerHeight="8"
+       orient="auto-start-reverse">
+      <path
+         d="M 0,0 10,5 0,10 Z"
+         fill="#222222"
+         id="path1" />
+    </marker>
+  </defs>
+  <text
+     x="480.26831"
+     y="19.037109"
+     id="text3"
+     style="font-size:27px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#151515"><tspan
+       x="480.26831"
+       id="tspan2">State proves intentional</tspan><tspan
+       x="480.26831"
+       dy="34"
+       id="tspan3">and unlawful killing</tspan></text>
+  <text
+     x="480.26831"
+     y="194.03711"
+     id="text5"
+     style="font-size:27px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#151515"><tspan
+       x="480.26831"
+       id="tspan4">Jury presumes</tspan><tspan
+       x="480.26831"
+       dy="34"
+       id="tspan5">“malice aforethought”</tspan></text>
+  <text
+     x="155.26831"
+     y="406.03711"
+     id="text7"
+     style="font-size:27px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#151515"><tspan
+       x="155.26831"
+       id="tspan6">Defendant convicted</tspan><tspan
+       x="155.26831"
+       dy="34"
+       id="tspan7">of murder</tspan></text>
+  <text
+     x="725.26831"
+     y="374.03711"
+     id="text9"
+     style="font-size:27px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#151515"><tspan
+       x="725.26831"
+       id="tspan8">Defendant claims</tspan><tspan
+       x="725.26831"
+       dy="34"
+       id="tspan9">manslaughter</tspan></text>
+  <text
+     x="725.26831"
+     y="543.03711"
+     font-size="25px"
+     id="text12"
+     style="font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#151515"><tspan
+       x="725.26831"
+       id="tspan10">Defendant must prove heat of passion</tspan><tspan
+       x="725.26831"
+       dy="32"
+       id="tspan11">on sudden provocation by a</tspan><tspan
+       x="725.26831"
+       dy="32"
+       id="tspan12">preponderance of the evidence</tspan></text>
+  <text
+     x="480.26831"
+     y="804.03711"
+     id="text13"
+     style="font-size:27px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#151515">Burden met?</text>
+  <text
+     x="107.26831"
+     y="781.03711"
+     id="text14"
+     style="font-size:27px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#151515"><tspan
+       x="107.26831"
+       id="tspan13">Murder conviction</tspan><tspan
+       x="107.26831"
+       dy="32"
+       id="tspan14">stands</tspan></text>
+  <text
+     x="847.26831"
+     y="785.03711"
+     id="text16"
+     style="font-size:27px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#151515"><tspan
+       x="847.26831"
+       id="tspan15">Charge reduced</tspan><tspan
+       x="847.26831"
+       dy="32"
+       id="tspan16">to manslaughter</tspan></text>
+  <path
+     d="m 480.26831,66.03711 v 85"
+     id="path16"
+     style="fill:none;stroke:#222222;stroke-width:2.5;marker-end:url(#arrow)"
+     sodipodi:nodetypes="cc" />
+  <path
+     d="m 360.26831,241.03711 -195,135"
+     id="path17"
+     style="fill:none;stroke:#222222;stroke-width:2.5;marker-end:url(#arrow)"
+     sodipodi:nodetypes="cc" />
+  <path
+     d="m 558.80659,244.37044 65.68633,90.20834"
+     id="path18"
+     style="fill:none;stroke:#222222;stroke-width:2.5;marker-end:url(#arrow)"
+     sodipodi:nodetypes="cc" />
+  <path
+     d="m 725.28809,418.22461 0.17553,98.75"
+     id="path19"
+     style="fill:none;stroke:#222222;stroke-width:2.5;marker-end:url(#arrow)"
+     sodipodi:nodetypes="cc" />
+  <path
+     d="M 725.46362,621.76628 560.26831,776.03711"
+     id="path20"
+     style="fill:none;stroke:#222222;stroke-width:2.5;marker-end:url(#arrow)"
+     sodipodi:nodetypes="cc" />
+  <path
+     d="m 390.26831,796.03711 h -160"
+     id="path21"
+     sodipodi:nodetypes="cc"
+     style="fill:none;stroke:#222222;stroke-width:2.5;marker-end:url(#arrow)" />
+  <path
+     d="m 565.26831,796.03711 h 155"
+     id="path22"
+     sodipodi:nodetypes="cc"
+     style="fill:none;stroke:#222222;stroke-width:2.5;marker-end:url(#arrow)" />
+  <text
+     x="325.37247"
+     y="821.40283"
+     id="text22"
+     style="font-size:24px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#222222">No</text>
+  <text
+     x="648.185"
+     y="821.58545"
+     id="text23"
+     style="font-size:24px;font-family:'CMU Serif', 'Computer Modern Serif', 'Latin Modern Roman', serif;text-anchor:middle;fill:#222222">Yes</text>
+</svg>

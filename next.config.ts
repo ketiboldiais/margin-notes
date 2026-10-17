@@ -9,6 +9,11 @@ const nextConfig = {
 /** @type {import('rehype-pretty-code').Options} */
 const options = {
   keepBackground: true,
+  theme: 'everforest-dark',
+  // theme: {
+  //   dark: 'github-dark-dimmed',
+  //   light: 'github-light',
+  // }
 };
 
 const defaultConfig = createMDX({

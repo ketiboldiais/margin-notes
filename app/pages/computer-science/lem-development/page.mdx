@@ -1,6 +1,5 @@
 import MdxLayout from "@/components/mdx-layout";
 
-
 import {COMPILER_FLOW} from "@/components/figures.lem.tsx";
 
 # LEM
@@ -9,18 +8,19 @@ This page outlines LEM's development process.
 <TOC>
 
 - [Weaver](#weaver)
-- [Scanning](#scanning)
+- [Lexical Analysis](#lexical-analysis)
   - [Tokens](#tokens)
-    - [`TokenType`](#tokentype)
+    - [`TokenName`](#tokenname)
   - [`Token` Objects](#token-objects)
-    - [_`Token`_`._type`](#token_type)
+    - [_`Token`_`._name`](#token_name)
     - [_`Token`_`._lexeme`](#token_lexeme)
     - [_`Token`_`._literal`](#token_literal)
     - [_`Token`_`._line`](#token_line)
     - [_`Token`_`.clone()`](#tokenclone)
-    - [_`Token`_`.type(𝑡)`](#tokentype𝑡)
+    - [_`Token`_`.name(𝑛)`](#tokenname𝑛)
     - [_`Token`_`.line(ℓ)`](#tokenlineℓ)
     - [_`Token`_`.lit(𝑝)`](#tokenlit𝑝)
+    - [_`Token`_`.isNamed(𝑛)`](#tokenisnamed𝑛)
     - [Primitives](#primitives)
 - [Error Handling](#error-handling)
   - [`Glitch` Objects](#glitch-objects)
@@ -36,99 +36,46 @@ This page outlines LEM's development process.
 - [Utilities](#utilities)
   - [`print(𝑠)`](#print𝑠)
 - [Parsing](#parsing)
+  - [Abstract Syntax Trees](#abstract-syntax-trees)
+    - [`ASTNode`](#astnode)
+      - [_`ASTNode`_.`accept(𝑣)`](#astnodeaccept𝑣)
+      - [_`ASTNode`_.`kind()`](#astnodekind)
+    - [Visitors](#visitors)
+    - [`NodeKind`](#nodekind)
+- [Nil](#nil)
+- [Integers](#integers)
+- [Floating Point Numbers](#floating-point-numbers)
+- [Strings](#strings)
+- [Algebraic Binary Expressions](#algebraic-binary-expressions)
+- [Logical Binary Expressions](#logical-binary-expressions)
 
 
 </TOC>
+
 
 ## Weaver
 To execute LEM code, the raw source code is fed to `Weave`, LEM's compiler. `Weave` runs the code through four stages: 
 
 <COMPILER_FLOW/>
 
-## Scanning
+## Lexical Analysis
+Lexical analysis is the process of taking a sequence of source-code characters and grouping those characters into meanintful units called __tokens__. Lexical analysis involves three distinct concepts:
+
+1. __Tokens__. A _token_ is a pair ${\lpar t, x \rpar,}$ where ${t}$ is a _token name_ and ${x}$ is some value. The token name is an abstract symbol representing a kind of lexical unit (e.g., a keyword, an identifier, a Boolean value like true or false, etc.) Token names are what the parser processes. The ${x}$ value could be whatever value we deem fit for the token name. For example, the sequence of characters ${25}$ could be lexically analyzed as ${\lpar \texttt{integer}, 25 \rpar.}$ Here, the token name is ${\texttt{integer}}$ and the value is the literal integer ${25.}$ 
+2. __Patterns__. A _pattern_ is a description of the form that the lexemes of a token can take. For example, in LEM, a token named `Bool` encompasses all lexemes with the following patterns: `true` or `false`. The patterns, of course, can be more complicated: A `float`, for example, is either (1) an `integer`, followed by dot ("`.`") followed by an integer, or (2) a dot followed by an integer.  
+3. __Lexemes__. A _lexeme_ is the actual sequence of characters in the source program that matches the pattern for a token. When a sequence matches a pattern, the lexical analyzer identifies that sequence and yields an instance of the corresponding token. 
+
 ### Tokens
-#### `TokenType`
-LEM implements token types with a TypeScript `enum` called `TokenType`. These tokens are listed in the table below (click to expand).
-
-<details>
-<summary>`TokenType` Table</summary>
-
-| `TokenType`     | Character(s)                            |
-| --------------- | --------------------------------------- |
-| `left_paren`    | `(`                                     |
-| `right_paren`   | `)`                                     |
-| `left_brace`    | `{`                                     |
-| `right_brace`   | `}`                                     |
-| `left_bracket`  | `[`                                     |
-| `right_bracket` | `]`                                     |
-| `comma`         | `,`                                     |
-| `dot`           | `.`                                     |
-| `minus`         | `-`                                     |
-| `plus`          | `+`                                     |
-| `semicolon`     | `;`                                     |
-| `slash`         | `/`                                     |
-| `star`          | `*`                                     |
-| `at`            | `@`                                     |
-| `bang`          | `!`                                     |
-| `pound`         | `#`                                     |
-| `percent`       | `%`                                     |
-| `caret`         | `^`                                     |
-| `ampersand`     | `&`                                     |
-| `equal`         | `=`                                     |
-| `tick`          | `'`                                     |
-| `eroteme`       | `?`                                     |
-| `less`          | `<`                                     |
-| `greater`       | `>`                                     |
-| `colon`         | `:`                                     |
-| `vbar`          | `\|`                                    |
-| `tilde`         | `~`                                     |
-| `colon_equal`   | `:=`                                    |
-| `bang_equal`    | `!=`                                    |
-| `equal_equal`   | `==`                                    |
-| `less_equal`    | `<=`                                    |
-| `greater_equal` | `>=`                                    |
-| `true`          | Boolean value "true"                    |
-| `false`         | Boolean value "false"                   |
-| `null`          | Literal value "null"                    |
-| `inf`           | Numeric value "infinity"                |
-| `nan`           | Non-real value "not a number"           |
-| `identifier`    | _See_ § Identifiers                     |
-| `string`        | _See_ § Strings                         |
-| `integer`       | _See_ § Integers                        |
-| `float`         | _See_ § Floats                          |
-| `fraction`      | _See_ § Fractions                       |
-| `complex`       | _See_ § Complex Numbers                 |
-| `not`           | _See_ § not Operator                    |
-| `and`           | _See_ § and Operator                    |
-| `nand`          | _See_ § nand Operator                   |
-| `or`            | _See_ § or Operator                     |
-| `nor`           | _See_ § nor Operator                    |
-| `xnor`          | _See_ § xnor Operator                   |
-| `->`            | _See_ § Implication Operator            |
-| `!->`           | _See_ § Nonimplication Operator         |
-| `<-`            | _See_ § Converse Operator               |
-| `!<-`           | _See_ § Nonconverse Operator            |
-| `<->`           | _See_ § Biconditional Operator          |
-| `class`         | Keyword. _See_ § Class Declarations     |
-| `fn`            | Keyword. _See_ § Function Declarations  |
-| `if`            | Keyword. _See_ § Conditional Statements |
-| `then`          | Keyword. _See_ § Conditional Statements |
-| `else`          | Keyword. _See_ § Conditional Statements |
-| `return`        | Keyword. _See_ § Return Statements      |
-| `super`         | Keyword. _See_ § `super` Calls          |
-| `this`          | Keyword. _See_ § `this` Pointers        |
-| `var`           | Keyword. _See_ § Variable Declarations  |
-| `const`         | Keyword. _See_ § Constant Declarations  |
-
-</details>
+#### `TokenName`
+LEM implements token names with a TypeScript `enum` called `TokenName`. These tokens are listed below (click to expand).
 
 
 
 ### `Token` Objects
 LEM tokens are represented by `Token` objects. Below are its properties and methods.
 
-#### _`Token`_`._type`
-The LEM token's specific type. The value of this property is one of [TokenType](#tokentype).
+#### _`Token`_`._name`
+The LEM token's name. The value of this property is one of [`TokenName`](#tokenname).
 
 #### _`Token`_`._lexeme`
 The LEM token's lexeme. The value of this property is a string, corresponding to the lexeme scanned.
@@ -142,14 +89,17 @@ A JavaScript _number_ corresponding to the line within the source code where the
 #### _`Token`_`.clone()`
 Returns a new instance of the token, with all the same properties. 
 
-#### _`Token`_`.type(𝑡)`
-Given a [TokenType](#tokentype) 𝑡, returns a new instance of the token with all the same properties, except the new instance's property [`_type`](#token_type) is now 𝑡.
+#### _`Token`_`.name(𝑛)`
+Given a [`TokenName`](#tokenname) 𝑛, returns a new instance of the token with all the same properties, except the new instance's property [`_name`](#token_name) is now 𝑡.
 
 #### _`Token`_`.line(ℓ)`
 Given a JavaScript _number_ ℓ, returns a new instance of the token with all the same properties, except the new instance's [`_line`](#token_line) is now ℓ.
 
 #### _`Token`_`.lit(𝑝)`
 Given a [Primitive](#primitives) 𝑝, returns a new instance of the token with all the same properties, except the new instance's [`_literal`](#token_literal) property is now 𝑝.
+
+#### _`Token`_`.isNamed(𝑛)`
+Given a [TokenName](#tokenname) 𝑛, returns true if the given `Token`'s name matches 𝑛 and false otherwise.
 
 #### Primitives
 Within LEM's source code, the type `Primitive` is used to refer to the following JavaScript types:
@@ -207,12 +157,103 @@ Within LEM's source code are several utilities. This section documents those uti
 ### `print(𝑠)`
 Given an `𝑠` of type `𝑇`, logs to the console and returns a string form of `source`. This function generates a pretty-print tree string for objects.
 
+~~~ts showLineNumbers
+print({
+  a: 1,
+  b: [1,2,3],
+  c: {
+    x: 4,
+    y: 5,
+    z: 6,
+  },
+})
+~~~
+~~~terminal
+├─ .
+├─ a: 1
+├─ b
+│  ├─ 0: 1
+│  ├─ 1: 2
+│  └─ 2: 3
+└─ c
+   ├─ x: 4
+   ├─ y: 5
+   └─ z: 6
+~~~
+
 ## Parsing
-Once `Weaver` has scanned the LEM source code, the generated tokens are sent to the parser. The parser takes these tokens and constructs an _abstract syntax tree_ (_AST_). The AST, at the highest level, is a sequence of statements.
+Once Weaver has scanned the LEM source code, the generated tokens are sent to the parser. The parser takes these tokens and constructs an _abstract syntax tree_ (_AST_). The AST, at the highest level, is a sequence of statements.
 
+### Abstract Syntax Trees
+A successful parsing of LEM code yields an __abstract syntax tree__ `(`__AST__`)`. This is a tree constructed of __AST nodes__. This section explains the various AST nodes used by Weaver to constuct an AST.
 
+#### `ASTNode`
+AST nodes are represented by objects defined by the `ASTNode` class. This is an abstract class with the following abstract methods.
 
+1. __`accept`__`(𝑣)`
+2. __`kind`__`()`
+3. __`toString`__`()`
+4. __`isStatement`__`()`
+5. __`isExpression`__`()`
+6. __`obj`__`()`
 
+We explain each method in the following sections.
+
+##### _`ASTNode`_.`accept(𝑣)`
+Given a [`Visitor`](#visitors) of type 𝑇, returns a result of type 𝑇.
+
+##### _`ASTNode`_.`kind()`
+If called, returns the `ASTNode`'s [`NodeKind`](#nodekind).
+
+#### Visitors
+#### `NodeKind`
+
+## Nil
+The `nil` value corresponds to the intentional absence of value.
+
+## Integers
+An integer in LEM is any number that satisfies the following rules:  
+
+1. Zero, or
+2. a combination of digits ${0}$ through ${9,}$ not starting with ${0.}$
+
+## Floating Point Numbers
+A floating point number in LEM is any number that satisfies the following rules:
+
+1. Starts with [integer](#integers), followed by a dot `(.)`, followed by an [integer](#integers).
+2. Starts with a dot `(.)` followed by an [integer](#integers). 
+
+## Strings
+A string in LEM is any expression surrounded by double quotes `(")`.
+
+## Algebraic Binary Expressions
+An _algebraic binary expression_ is one of the following expressions.
+
+Where `𝑢` and `𝑣` are expressions,
+
+1. __Sum expression__. An expression of the form `𝑢 + 𝑣`.
+2. __Difference expression__. An expression of the form `𝑢 - 𝑣`. 
+3. __Product expression__. An expression of the form `𝑢 * 𝑣`.
+4. __Quotient expression__. An expression of the form `𝑢 / 𝑣`.
+5. __Power expression__. An expression of the form `𝑢^𝑣`.
+
+LEM considers the operators `+`, `-`, `*`, `/`, and `^` as binary algebraic operators. Within the source code, the tokens corresponding to these operators form a union type `BinaryAlgebraicOperator`.  
+
+## Logical Binary Expressions
+A _logical binary expression_ is one of the following expressions. 
+
+Where `𝑝` and `𝑞` are expressions:
+
+1. __Conjunction__. An expression of the form `𝑝 and 𝑞`.
+2. __Nonconjunction__. An expression of the form `𝑝 nand 𝑞`.
+3. __Disjunction__. An expression of the form `𝑝 or 𝑞`.
+4. __Nondisjunction__. An expression of the form `𝑝 nor 𝑞`.
+5. __Exclusive disjunction__. An expression of the form `𝑝 xor 𝑞`.
+6. __Implication__. An expression of the form `𝑝 -> 𝑞`.
+7. __Nonimplication__. An expression of the form `𝑝 !-> 𝑞`.
+8. __Converse__. An expression of the form `𝑝 <- 𝑞`.
+9. __Nonconverse__. An expression of the form `𝑝 !<- 𝑞`.
+10. __Biconditional__. An expression of the form `𝑝 <-> 𝑞`.
 
 export default function MDXPage({ children }) {
     return <MdxLayout>{children}</MdxLayout>

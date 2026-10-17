@@ -3,6 +3,7 @@ import Link from "next/link";
 export type DirectoryLink = {
   title: string;
   children: DirectoryLink[];
+  linkText?: string;
   hasLink?: boolean;
   isHeader?: boolean;
   isSubsection?: boolean;
@@ -15,10 +16,21 @@ export const directory: Directory = [
     title: "Law",
     isHeader: true,
     children: [
-      {title: "Criminal Law", children: []},
-      {title: "Public Policy", children: []},
-    ]
+      { title: "Criminal Law", children: [] },
+      { title: "Public Policy", children: [] },
+      {
+        title: "Case Summaries",
+        children: [
+          {
+            title: "mullaney-v-wilbur",
+            linkText: "Mullaney v. Wilbur, 421 U.S. 684 (1975)",
+            children: [],
+          },
+        ],
+      },
+    ],
   },
+
   {
     title: "Mathematics",
     isHeader: true,
@@ -98,10 +110,26 @@ export const directory: Directory = [
                     title: "Complex Numbers",
                     isSubsection: true,
                     children: [
-                      {title: "Complex Addition", isSubsection: true, children: []},
-                      {title: "Complex Multiplication", isSubsection: true, children: []},
-                      {title: "Properties of Complex Arithmetic", isSubsection: true, children: []},
-                      {title: "Complex Subtraction", isSubsection: true, children: []},
+                      {
+                        title: "Complex Addition",
+                        isSubsection: true,
+                        children: [],
+                      },
+                      {
+                        title: "Complex Multiplication",
+                        isSubsection: true,
+                        children: [],
+                      },
+                      {
+                        title: "Properties of Complex Arithmetic",
+                        isSubsection: true,
+                        children: [],
+                      },
+                      {
+                        title: "Complex Subtraction",
+                        isSubsection: true,
+                        children: [],
+                      },
                     ],
                   },
                   {
@@ -116,16 +144,36 @@ export const directory: Directory = [
                   },
                 ],
               },
-              {title: "Intervals", isSubsection: true, children: []},
-              {title: "Absolute Value", isSubsection: true, children: []},
+              { title: "Intervals", isSubsection: true, children: [] },
+              { title: "Absolute Value", isSubsection: true, children: [] },
             ],
           },
-          {title: "Equations", isSubsection: true, children: [
-            { title: "Linear Equations in One Variable", isSubsection: true, children: [] },
-            { title: "Quadratic Equations", isSubsection: true, children: [] },
-            { title: "Solving Quadratic Equations", isSubsection: true, children: [] },
-            { title: "The Quadratic Formula", isSubsection: true, children: [] },
-          ]},
+          {
+            title: "Equations",
+            isSubsection: true,
+            children: [
+              {
+                title: "Linear Equations in One Variable",
+                isSubsection: true,
+                children: [],
+              },
+              {
+                title: "Quadratic Equations",
+                isSubsection: true,
+                children: [],
+              },
+              {
+                title: "Solving Quadratic Equations",
+                isSubsection: true,
+                children: [],
+              },
+              {
+                title: "The Quadratic Formula",
+                isSubsection: true,
+                children: [],
+              },
+            ],
+          },
         ],
       },
       {
@@ -144,14 +192,17 @@ export const directory: Directory = [
     children: [
       // { title: "LEM", children: [] },
       { title: "LEM Development", children: [] },
+      {
+        title: "LEM Implicit Multiplication",
+        linkText: "Blog Post: Dealing with Implicit Multiplication",
+        children: [],
+      },
     ],
   },
   {
     title: "Physics",
     isHeader: true,
-    children: [
-      { title: "Mechanics", children: [] },
-    ],
+    children: [{ title: "Mechanics", children: [] }],
   },
   {
     title: "Puzzles",
@@ -184,7 +235,7 @@ export const DirectoryRender = ({
       if (list.isHeader) {
         return (
           <div key={list.title}>
-            <h2>{list.title}</h2>
+            <h2>{list.linkText ? list.linkText : list.title}</h2>
             <ul>
               {list.children.map((link) =>
                 DirectoryRender({ list: link, preceding_string: p }),
@@ -195,7 +246,7 @@ export const DirectoryRender = ({
       } else {
         return (
           <li key={list.title}>
-            <Link href={p}>{list.title}</Link>
+            <Link href={p}>{list.linkText ? list.linkText : list.title}</Link>
             <ul>
               {list.children.map((link) =>
                 DirectoryRender({ list: link, preceding_string: p }),
@@ -207,7 +258,7 @@ export const DirectoryRender = ({
     } else {
       return (
         <li key={list.title}>
-          <Link href={p}>{list.title}</Link>
+          <Link href={p}>{list.linkText ? list.linkText : list.title}</Link>
         </li>
       );
     }
