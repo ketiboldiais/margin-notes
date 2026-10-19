@@ -102,6 +102,17 @@ export function print<T>(source: T) {
   return source;
 }
 
+/**
+ * A high entropy key generator. Less the risk
+ * of duplicate collisions based on timestamp.
+ * @returns a string.
+ */
+function hentKey() {
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substring(2, 7);
+  return `${timestamp}-${randomPart}`;
+}
+
 // Either Type
 type Either<A, B> = Left<A> | Right<B>;
 
@@ -173,6 +184,7 @@ abstract class Maybe<T> {
   }
 
   abstract isSome(): this is Some<T>;
+
   abstract isNone(): this is None<T>;
 
   abstract map<U>(fn: (value: T) => U): Maybe<U>;
@@ -393,21 +405,18 @@ enum TokenName {
   equal, // Handler: scanOperator
 
   /** Symbolic string */
-  symbolic, // Handler: scanSymbolic
+  symstring, // Handler: scanSymbolic
 
   /** String concatenation */
   concat,
 
   /* ---------------------------- Native Functions ---------------------------- */
 
-  /** Native function; Lexeme: `mod` */
+  /** Binary operator; Lexeme: `mod` */
   mod, // Handler: scanIdentifier, in keywords record
 
-  /** Native function; Lexeme: `rem` */
+  /** Binary operator; Lexeme: `rem` */
   rem, // Handler: scanIdentifier, in keywords record
-
-  /** Native function; Lexeme: `div` */
-  div, // Handler: scanIdentifier, in keywords record
 
   /** Ternary operator; Lexeme: `?` */
   eroteme, // Handler: scanOperator
@@ -440,22 +449,22 @@ enum TokenName {
   // Native Function
   native_fn,
 
-  // Matrix Operators
+  // Vector Operators
 
   /** Binary vector operator; Lexeme: `@` */
   at, // Handler: scanOperator
 
-  /** Binary vector operator; Lexeme: `*+` */
-  star_plus, // Handler: scanOperator
+  /** Binary vector operator; Lexeme: `.+` */
+  dot_plus, // Handler: scanOperator
 
-  /** Binary vector operator; Lexeme: `*-` */
-  star_minus, // Handler: scanOperator
+  /** Binary vector operator; Lexeme: `.-` */
+  dot_minus, // Handler: scanOperator
 
-  /** Binary vector operator; Lexeme: `**` */
-  star_star, // Handler: scanOperator
+  /** Binary vector operator; Lexeme: `.*` */
+  dot_star, // Handler: scanOperator
 
-  /** Binary vector operator; Lexeme: `*\/` */
-  star_slash, // Handler: scanOperator
+  /** Binary vector operator; Lexeme: `.\/` */
+  dot_slash, // Handler: scanOperator
 
   // Block delimiters
   indent, // Handler: tokenizeLine
@@ -561,16 +570,16 @@ type BinaryAlgebraicOperator =
   | TokenName.slash
   | TokenName.star
   | TokenName.percent
-  | TokenName.caret;
-
-type NativeFn = TokenName.mod | TokenName.rem | TokenName.div;
+  | TokenName.caret
+  | TokenName.mod
+  | TokenName.rem;
 
 type BinaryVectorOperator =
   | TokenName.at
-  | TokenName.star_plus
-  | TokenName.star_minus
-  | TokenName.star_star
-  | TokenName.star_slash;
+  | TokenName.dot_plus
+  | TokenName.dot_minus
+  | TokenName.dot_star
+  | TokenName.dot_slash;
 
 type TypeEquivalenceOperator = TokenName.tilde;
 
@@ -647,7 +656,7 @@ class Token<T extends TokenName = TokenName> {
   }
 
   /** Returns true if this Token's name is the given name. */
-  isNamed(name: TokenName) {
+  isNamed<K extends T>(name: K): this is Token<K> {
     return this._name === name;
   }
   /** Returns the string-form of the given TokenName.  */
@@ -717,7 +726,7 @@ class Token<T extends TokenName = TokenName> {
       case TokenName.fn: return "fn";
       case TokenName.eof: return "eof";
       case TokenName.newline: return "newline";
-      case TokenName.symbolic: return "symbolic";
+      case TokenName.symstring: return "symstring";
       default: return "unknown";
     }
   }
@@ -823,13 +832,15 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
     fn: TokenName.fn,
     mod: TokenName.mod,
     rem: TokenName.rem,
-    div: TokenName.div,
   };
   /** The list of tokens to return. */
   let tokens: Token[] = [];
 
   /** A stack keeping track of indent levels. */
   const indentStack: number[] = [0];
+
+  /** A stack keeping track of delimiters. */
+  const delimiterStack: string[] = [];
 
   /** Given a source code, returns the source code's lines as an array. */
   const programLines = (source: string): string[] =>
@@ -984,7 +995,7 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
         current++;
         const lexeme = line.slice(start, current);
         tokens.push(
-          token(TokenName.symbolic, lexeme, lineNumber, start + 1).lit(lexeme),
+          token(TokenName.symstring, lexeme, lineNumber, start + 1).lit(lexeme),
         );
         return current;
       }
@@ -1035,43 +1046,105 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
       );
       return current + length;
     };
-    // prettier-ignore
     switch (char) {
-      case "(": return add(TokenName.left_paren);
-      case ")": return add(TokenName.right_paren);
-      case "{": return add(TokenName.left_brace);
-      case "}": return add(TokenName.right_brace);
-      case "[": return add(TokenName.left_bracket);
-      case "]": return add(TokenName.right_bracket);
-      case ",": return add(TokenName.comma);
-      case ".": return add(TokenName.dot);
+      case "(": {
+        delimiterStack.push("(");
+        return add(TokenName.left_paren);
+      }
+      case ")": {
+        if (
+          delimiterStack.length &&
+          delimiterStack[delimiterStack.length - 1] === "("
+        ) {
+          delimiterStack.pop();
+          return add(TokenName.right_paren);
+        } else {
+          throw glitch(
+            `Mismatched ")"`,
+            "lexical-error",
+            lineNumber,
+            current + 1,
+          );
+        }
+      }
+      case "{": {
+        delimiterStack.push("{");
+        return add(TokenName.left_brace);
+      }
+      case "}": {
+        if (
+          delimiterStack.length &&
+          delimiterStack[delimiterStack.length - 1] === "{"
+        ) {
+          delimiterStack.pop();
+          return add(TokenName.right_brace);
+        } else {
+          throw glitch(
+            `Mismatched "}"`,
+            "lexical-error",
+            lineNumber,
+            current + 1,
+          );
+        }
+      }
+      case "[": {
+        delimiterStack.push("[");
+        return add(TokenName.left_bracket);
+      }
+      case "]": {
+        if (
+          delimiterStack.length &&
+          delimiterStack[delimiterStack.length - 1] === "["
+        ) {
+          delimiterStack.pop();
+          return add(TokenName.right_bracket);
+        } else {
+          throw glitch(
+            `Mismatched "]"`,
+            "lexical-error",
+            lineNumber,
+            current + 1,
+          );
+        }
+      }
+      case ",":
+        return add(TokenName.comma);
+      case ".": {
+        if (nextChar === "+") {
+          return add(TokenName.dot_plus, 2);
+        }
+        if (nextChar === "-") {
+          return add(TokenName.dot_minus, 2);
+        }
+        if (nextChar === "*") {
+          return add(TokenName.dot_star, 2);
+        }
+        if (nextChar === "/") {
+          return add(TokenName.dot_slash, 2);
+        }
+        return add(TokenName.dot);
+      }
       case "-": {
         if (nextChar === ">") {
           return add(TokenName.imply, 2);
         }
         return add(TokenName.minus);
       }
-      case "+": return add(TokenName.plus);
-      case ";": return add(TokenName.semicolon);
-      case "/": return add(TokenName.slash);
-      case "?": return add(TokenName.eroteme);
+      case "+":
+        return add(TokenName.plus);
+      case ";":
+        return add(TokenName.semicolon);
+      case "/":
+        return add(TokenName.slash);
+      case "?":
+        return add(TokenName.eroteme);
       case "*": {
-				if (nextChar === "+") {
-					return add(TokenName.star_plus, 2); 
-				}
-				if (nextChar === "-") {
-					return add(TokenName.star_minus, 2);
-				}
-				if (nextChar === "*") {
-					return add(TokenName.star_star, 2);
-				}
-				if (nextChar === "/") {
-					return add(TokenName.star_slash, 2);
-				}
-				return add(TokenName.star);
-			}
-      case "@": return add(TokenName.at);
-      case "&": return add(TokenName.concat);
+        return add(TokenName.star);
+      }
+      case "@":
+        return add(TokenName.at);
+      case "&":
+        return add(TokenName.concat);
       case "!":
         if (nextChar === "=") {
           return add(TokenName.bang_equal, 2);
@@ -1083,15 +1156,19 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
           return add(TokenName.nonconverse, 3);
         }
         return add(TokenName.bang);
-      case "#": return add(TokenName.pound);
-      case "%": return add(TokenName.percent);
-      case "^": return add(TokenName.caret);
+      case "#":
+        return add(TokenName.pound);
+      case "%":
+        return add(TokenName.percent);
+      case "^":
+        return add(TokenName.caret);
       case "=":
         if (nextChar === "=") {
           return add(TokenName.equal_equal, 2);
         }
         return add(TokenName.equal);
-      case "?": return add(TokenName.eroteme);
+      case "?":
+        return add(TokenName.eroteme);
       case "<":
         if (nextChar === "=") {
           return add(TokenName.less_equal, 2);
@@ -1108,14 +1185,12 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
           return add(TokenName.greater_equal, 2);
         }
         return add(TokenName.greater);
-      case ":": return add(TokenName.colon);
-      case "|": {
-        if (nextChar === "|") {
-          return add(TokenName.or, 2);
-        }
+      case ":":
+        return add(TokenName.colon);
+      case "|":
         return add(TokenName.vbar);
-      }
-      case "~": return add(TokenName.tilde);
+      case "~":
+        return add(TokenName.tilde);
     }
     throw glitch(
       `Unexpected character: ${char}`,
@@ -1135,7 +1210,9 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
 
     const indent = countIndentation(line, lineNumber);
 
-    scanIndents(indent, lineNumber);
+    if (delimiterStack.length === 0) {
+      scanIndents(indent, lineNumber);
+    }
 
     let current = indent;
 
@@ -1198,7 +1275,9 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
       // scan operators
       current = scanOperator(line, current, lineNumber);
     }
-    tokens.push(token(TokenName.newline, "", lineNumber, current + 1));
+    if (delimiterStack.length === 0) {
+      tokens.push(token(TokenName.newline, "", lineNumber, current + 1));
+    }
   };
 
   const tokenize = () => {
@@ -1223,28 +1302,6 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
 /*                               Syntax Analysis                              */
 /* -------------------------------------------------------------------------- */
 // We start by defining the AST node kinds.
-
-/** An enum corresponding to a nodes kind. */
-enum Nodekind {
-  // expression nodekinds
-  integer,
-  float,
-  nil,
-  str,
-  frac,
-  algebraic_binex,
-  logical_binex,
-  relation,
-  sym,
-  bool,
-  parend,
-  nan,
-  inf,
-  concatenation,
-
-  // statement nodekinds
-  expression_statement,
-}
 
 type ExprKind =
   | "int"
@@ -1413,9 +1470,51 @@ interface Visitor<T> {
   sym(node: SymExpression): T;
   nan(node: NaNLiteral): T;
   inf(node: InfLiteral): T;
+  negate(node: Negation): T;
   parend(node: ParenthesizedExpression): T;
+  conditional(node: Conditional): T;
   concatenation(node: Concatenation): T;
+  vectorBinex(node: VectorBinex): T;
+  assignment(node: Assignment): T;
+  vector(node: VectorLiteral): T;
+  matrix(node: MatrixLiteral): T;
+  set(node: SetLiteral): T;
+  functionCall(node: FunctionCall): T;
+  factorial(node: FactorialExpression): T;
   exprStmt(node: ExpressionStatement): T;
+  varDeclaration(node: VarDeclaration): T;
+}
+
+/** An enum corresponding to a nodes kind. */
+enum Nodekind {
+  // expression nodekinds
+  integer,
+  float,
+  nil,
+  str,
+  frac,
+  algebraic_binex,
+  logical_binex,
+  relation,
+  sym,
+  bool,
+  parend,
+  nan,
+  inf,
+  concatenation,
+  negation,
+  conditional,
+  vector_binex,
+  assignment,
+  vector,
+  matrix,
+  set,
+  factorial,
+  function_call,
+
+  // statement nodekinds
+  expression_statement,
+  variable_declaration,
 }
 
 /** An object representing an AST node. */
@@ -1613,6 +1712,26 @@ class AlgebraicBinex extends Expression {
   }
 }
 
+/** An ASTNode corresponding to a negation expression. */
+class Negation extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.negate(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.negation;
+  }
+  toString(): string {
+    return `-${this._arg.toString()}`;
+  }
+  _op: Token<TokenName.minus>;
+  _arg: Expression;
+  constructor(op: Token<TokenName.minus>, arg: Expression) {
+    super();
+    this._op = op;
+    this._arg = arg;
+  }
+}
+
 /** An ASTNode corresponding to a logical binary expression. */
 class LogicalBinex extends Expression {
   accept<T>(visitor: Visitor<T>): T {
@@ -1685,6 +1804,7 @@ class SymExpression extends Expression {
   }
 }
 
+/** An object representing a constant expression. */
 class ConstExpression extends Expression {
   accept<T>(visitor: Visitor<T>): T {
     return visitor.constant(this);
@@ -1720,6 +1840,7 @@ class ParenthesizedExpression extends Expression {
   }
 }
 
+/** An expression representing a concatentation expression. */
 class Concatenation extends Expression {
   accept<T>(visitor: Visitor<T>): T {
     return visitor.concatenation(this);
@@ -1741,6 +1862,197 @@ class Concatenation extends Expression {
   }
 }
 
+/** An object corresponding to a conditional expression node. */
+class Conditional extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.conditional(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.conditional;
+  }
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
+  _op: Token<TokenName.eroteme>;
+  _if: Expression;
+  _then: Expression;
+  _else: Expression;
+  constructor(
+    op: Token<TokenName.eroteme>,
+    _if: Expression,
+    _then: Expression,
+    _else: Expression,
+  ) {
+    super();
+    this._op = op;
+    this._if = _if;
+    this._then = _then;
+    this._else = _else;
+  }
+}
+
+/** An object corresponding to a vector binary expression ASTNode. */
+class VectorBinex extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.vectorBinex(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.vector_binex;
+  }
+  toString(): string {
+    const L = this._left.toString();
+    const R = this._right.toString();
+    const op = this._op._lexeme;
+    return `${L} ${op} ${R}`;
+  }
+  _op: Token<BinaryVectorOperator>;
+  _left: Expression;
+  _right: Expression;
+  constructor(
+    left: Expression,
+    op: Token<BinaryVectorOperator>,
+    right: Expression,
+  ) {
+    super();
+    this._op = op;
+    this._left = left;
+    this._right = right;
+  }
+}
+
+/** An object representing a factorial expression AST node. */
+class FactorialExpression extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.factorial(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.factorial;
+  }
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
+  _op: Token;
+  _arg: Expression;
+  constructor(op: Token, arg: Expression) {
+    super();
+    this._op = op;
+    this._arg = arg;
+  }
+}
+
+/** An object representing an assignment expression. */
+class Assignment extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.assignment(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.assignment;
+  }
+  toString(): string {
+    const sym = this._sym.toString();
+    const value = this._value.toString();
+    return `${sym} = ${value}`;
+  }
+  _sym: SymExpression;
+  _value: Expression;
+  constructor(sym: SymExpression, value: Expression) {
+    super();
+    this._sym = sym;
+    this._value = value;
+  }
+}
+
+class SetLiteral extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.set(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.set;
+  }
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
+  _op: Token;
+  _elements: Expression[];
+  constructor(op: Token, elements: Expression[]) {
+    super();
+    this._op = op;
+    this._elements = elements;
+  }
+}
+
+/** An objecting representing a vector expression. */
+class VectorLiteral extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.vector(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.vector;
+  }
+  toString(): string {
+    const elements = this._elements.map((c) => c.toString()).join(",");
+    return `[${elements}]`;
+  }
+  _op: Token;
+  _elements: Expression[];
+  constructor(op: Token, elements: Expression[]) {
+    super();
+    this._op = op;
+    this._elements = elements;
+  }
+}
+
+class MatrixLiteral extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.matrix(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.matrix;
+  }
+  toString(): string {
+    const vectors = this._vectors.map((v) => v.toString()).join("\n");
+    return `[\n${vectors}\n]`;
+  }
+  _op: Token;
+  _vectors: VectorLiteral[];
+  _rowCount: number;
+  _colCount: number;
+  constructor(
+    op: Token,
+    vectors: VectorLiteral[],
+    rowcount: number,
+    colcount: number,
+  ) {
+    super();
+    this._op = op;
+    this._vectors = vectors;
+    this._rowCount = rowcount;
+    this._colCount = colcount;
+  }
+}
+
+/** An object representing a function call AST node. */
+class FunctionCall extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.functionCall(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.function_call;
+  }
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
+  _callee: Expression;
+  _paren: Token;
+  _args: Expression[];
+  constructor(callee: Expression, paren: Token, args: Expression[]) {
+    super();
+    this._callee = callee;
+    this._paren = paren;
+    this._args = args;
+  }
+}
+
 /** An object representing a statement. */
 abstract class Statement extends ASTNode {
   isStatement(): this is Statement {
@@ -1751,6 +2063,7 @@ abstract class Statement extends ASTNode {
   }
 }
 
+/** An object representing an expression statement. */
 class ExpressionStatement extends Statement {
   accept<T>(visitor: Visitor<T>): T {
     return visitor.exprStmt(this);
@@ -1765,6 +2078,26 @@ class ExpressionStatement extends Statement {
   constructor(expression: Expression) {
     super();
     this._expression = expression;
+  }
+}
+
+/** An object representing a variable declaration statement. */
+class VarDeclaration extends Statement {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.varDeclaration(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.variable_declaration;
+  }
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
+  _symbol: Token<TokenName.symbol>;
+  _value: Expression;
+  constructor(sym: Token<TokenName.symbol>, value: Expression) {
+    super();
+    this._symbol = sym;
+    this._value = value;
   }
 }
 
@@ -1793,6 +2126,11 @@ const astnode = {
     right: Expression,
   ) => new RelationExpr(left, op, right),
   sym: (s: Token<TokenName.symbol>) => new SymExpression(s),
+  vectorBinex: (
+    left: Expression,
+    op: Token<BinaryVectorOperator>,
+    right: Expression,
+  ) => new VectorBinex(left, op, right),
   constant: (c: Token<TokenName.constant>) => new ConstExpression(c),
   bool: (c: Token) => new Bool(c._lexeme === "true"),
   nan: () => new NaNLiteral(),
@@ -1800,8 +2138,32 @@ const astnode = {
   parend: (e: Expression) => new ParenthesizedExpression(e),
   concatenation: (left: Expression, op: Token, right: Expression) =>
     new Concatenation(left, op, right),
+  negation: (op: Token<TokenName.minus>, arg: Expression) =>
+    new Negation(op, arg),
+  conditional: (
+    op: Token<TokenName.eroteme>,
+    _if: Expression,
+    _then: Expression,
+    _else: Expression,
+  ) => new Conditional(op, _if, _then, _else),
+  assignment: (sym: SymExpression, value: Expression) =>
+    new Assignment(sym, value),
+  vector: (op: Token, elements: Expression[]) =>
+    new VectorLiteral(op, elements),
+  set: (op: Token, elements: Expression[]) => new SetLiteral(op, elements),
+  matrix: (
+    op: Token,
+    vectors: VectorLiteral[],
+    rowcount: number,
+    colcount: number,
+  ) => new MatrixLiteral(op, vectors, rowcount, colcount),
+  factorial: (op: Token, arg: Expression) => new FactorialExpression(op, arg),
+  functionCall: (paren: Token, callee: Expression, args: Expression[]) =>
+    new FunctionCall(callee, paren, args),
   statement: {
     expression: (e: Expression) => new ExpressionStatement(e),
+    varDeclaration: (sym: Token<TokenName.symbol>, value: Expression) =>
+      new VarDeclaration(sym, value),
   },
 };
 
@@ -1857,6 +2219,18 @@ class ParserState {
   get _peek() {
     return this._tokens[this._current];
   }
+  get _currentLine() {
+    return this._peek._line;
+  }
+  get _currentColumn() {
+    return this._peek._column;
+  }
+  get _prevLine() {
+    return this._prev._line;
+  }
+  get _prevColumn() {
+    return this._prev._column;
+  }
   next() {
     this._prev = this._tokens[this._current];
     return this._tokens[this._current++];
@@ -1874,6 +2248,10 @@ enum BP {
   string_operation,
   assignment,
   atom,
+  vector,
+  set,
+  conditional,
+  abs,
   or,
   nor,
   and,
@@ -1894,7 +2272,12 @@ enum BP {
   quotient,
   implicit_multiplication,
   power,
+  factorial,
   dot_product,
+  dot_sum,
+  dot_difference,
+  dot_mul,
+  dot_div,
   postfix,
   function_call,
 }
@@ -1903,7 +2286,7 @@ enum BP {
 type Parslet<T> = (current: Token, lastNode: T) => Either<Glitch, T>;
 
 /** @internal An entry within parser’s BP table. The first element is a prefix parslet, the second element is an infix parslet, and the last element is the binding power of the operator. */
-type ParsletEntry<T> = [Parslet<T>, Parslet<T>, Parslet<T>, BP];
+type ParsletEntry<T> = [Parslet<T>, Parslet<T>, BP];
 
 /** @internal A record of parslet entries, where each key is a token type (`tt`). */
 type BPTable<T> = Record<TokenName, ParsletEntry<T>>;
@@ -1945,6 +2328,16 @@ function syn(tokens: Token[]) {
   };
 
   /** Parses a logical infix expression.  */
+  const vectorInfix = (op: Token, lhs: Expression) => {
+    const p = precof(op._name);
+    return expression(p).chain((rhs) =>
+      state.expression(
+        astnode.vectorBinex(lhs, op as Token<BinaryVectorOperator>, rhs),
+      ),
+    );
+  };
+
+  /** Parses a logical infix expression.  */
   const logInfix = (op: Token, lhs: Expression) => {
     const p = precof(op._name);
     return expression(p).chain((rhs) =>
@@ -1952,6 +2345,46 @@ function syn(tokens: Token[]) {
         astnode.logBinex(lhs, op as Token<LogicalBinaryOperator>, rhs),
       ),
     );
+  };
+
+  /** Parses a conditional. */
+  const conditional = (op: Token, c: Expression) => {
+    if (!op.isNamed(TokenName.eroteme)) {
+      return state.error(
+        `Expected a "?" but got "${op._lexeme}"`,
+        op._line,
+        op._column,
+      );
+    }
+    const p = precof(op._name);
+    const _then = expression(p);
+    if (_then.isLeft()) return _then;
+    const r1 = _then.unwrap();
+    if (!state.nextIs(TokenName.colon)) {
+      return state.error(
+        `Expected a ":" after the first consequent`,
+        op._line,
+        op._column,
+      );
+    }
+    const _else = expression(p);
+    if (_else.isLeft()) return _else;
+    const r2 = _else.unwrap();
+    return state.expression(astnode.conditional(op, c, r1, r2));
+  };
+
+  const assignment = (op: Token, node: Expression) => {
+    if (node instanceof SymExpression) {
+      return expression().chain((value) =>
+        state.expression(astnode.assignment(node, value)),
+      );
+    } else {
+      return state.error(
+        `Expected a valid assignment target, but got ${node.toString()}`,
+        op._line,
+        op._column,
+      );
+    }
   };
 
   /** Parses a relation expression. */
@@ -1968,6 +2401,7 @@ function syn(tokens: Token[]) {
   const number = (t: Token): Either<Glitch, Expression> => {
     // Handle floating point numbers
     if (t.isNamed(TokenName.float) || t.isNamed(TokenName.integer)) {
+      // @ts-expect-error The logic is sound; too much work to work with the typechecker.
       const out = t.isNamed(TokenName.integer)
         ? state.expression(astnode.int(t._literal as number))
         : state.expression(astnode.float(t._literal as number));
@@ -1975,6 +2409,7 @@ function syn(tokens: Token[]) {
       const peek = state._peek;
       if (
         peek.isNamed(TokenName.left_paren) ||
+        peek.isNamed(TokenName.vbar) ||
         peek.isNamed(TokenName.constant) ||
         peek.isNamed(TokenName.symbol)
       ) {
@@ -2072,6 +2507,146 @@ function syn(tokens: Token[]) {
     );
   };
 
+  /** Parses a set literal. */
+  const set = (prev: Token) => {
+    const elements: Expression[] = [];
+    if (!state.check(TokenName.right_brace)) {
+      do {
+        const elem = expression();
+        if (elem.isLeft()) return elem;
+        const e = elem.unwrap();
+        elements.push(e);
+      } while (state.nextIs(TokenName.comma) && !state.atEnd());
+    }
+    if (!state.nextIs(TokenName.right_brace)) {
+      return state.error(
+        `Expected a closing "}".`,
+        state._prevLine,
+        state._prevColumn,
+      );
+    }
+    return state.expression(astnode.set(prev, elements));
+  };
+
+  /** Parses a vector literal. */
+  const vector = (prev: Token) => {
+    const elements: Expression[] = [];
+    const vectors: VectorLiteral[] = [];
+    let rows = 0;
+    let columns = 0;
+    let columnCount = 0;
+    if (!state.check(TokenName.right_bracket)) {
+      do {
+        const elem = expression();
+        if (elem.isLeft()) return elem;
+        const element = elem.unwrap();
+        if (element instanceof VectorLiteral) {
+          rows++;
+          if (vectors.length) {
+            columnCount = vectors[0]._elements.length;
+          }
+          columns = element._elements.length;
+          if (columnCount !== columns && columnCount !== 0) {
+            return state.error(
+              `Jagged matrix encountered`,
+              state._peek._line,
+              state._peek._column,
+            );
+          }
+          vectors.push(element);
+        } else {
+          elements.push(element);
+        }
+        // check for trailing commas.
+        if (
+          state.check(TokenName.comma) &&
+          state._peekNext.isNamed(TokenName.right_bracket)
+        ) {
+          state.next(); // eat the comma
+          break; // get out of this loop
+        }
+      } while (state.nextIs(TokenName.comma) && !state.atEnd());
+    }
+    if (!state.nextIs(TokenName.right_bracket)) {
+      return state.error(
+        `Expected a right bracket "]"`,
+        state._peek._line,
+        state._peek._column,
+      );
+    }
+    if (vectors.length !== 0) {
+      // if (vectors.length !== columns) {
+      //   return state.error(
+      //     `Encountered a jagged matrix.`,
+      //     state._peek._line,
+      //     state._peek._column,
+      //   );
+      // }
+      return state.expression(astnode.matrix(prev, vectors, rows, columns));
+    }
+    return state.expression(astnode.vector(prev, elements));
+  };
+
+  /** Parses a percent operation. */
+  const parsePercent = (op: Token, lhs: Expression) => {
+    const p = precof(op._name);
+    const _rhs = expression(p);
+    if (_rhs.isLeft()) return _rhs;
+    const rhs = _rhs.unwrap();
+    const e = astnode.algBinex(
+      astnode.parend(
+        astnode.algBinex(
+          lhs,
+          token(TokenName.slash, "/", op._line, op._column),
+          rhs,
+        ),
+      ),
+      token(TokenName.star, "*", op._line, op._column),
+      astnode.int(100),
+    );
+    return state.expression(e);
+  };
+
+  /** Parses a comma separated list. */
+  const commaSepList = <E extends Expression>(
+    filter: (e: Expression) => e is E,
+    errorMessage: string,
+  ) => {
+    const elements: E[] = [];
+    do {
+      const e = expression();
+      if (e.isLeft()) return e;
+      const element = e.unwrap();
+      if (!filter(element)) {
+        return state.error(
+          errorMessage,
+          state._currentLine,
+          state._currentColumn,
+        );
+      }
+      elements.push(element);
+    } while (state.nextIs(TokenName.comma));
+    return right(elements);
+  };
+
+  /** Parses a function call. */
+  const functionCall = (op: Token, callee: Expression) => {
+    let args: Expression[] = [];
+    if (!state.check(TokenName.right_paren)) {
+      const arglist = commaSepList(
+        (node): node is Expression => node instanceof Expression,
+        `Expected an expression`,
+      );
+      if (arglist.isLeft()) return arglist;
+      args = arglist.unwrap();
+    }
+    const paren = state.next();
+    if (!paren.isNamed(TokenName.right_paren)) {
+      return state.error(`Expected a closing ")"`, paren._line, paren._column);
+    }
+    return state.expression(astnode.functionCall(paren, callee, args));
+  };
+
   /** Parses a parenthesized expression. */
   const parenthesized = (t: Token) => {
     const innerExpression = expression();
@@ -2103,96 +2678,126 @@ function syn(tokens: Token[]) {
     return innerExpression.map((e) => astnode.parend(e));
   };
 
-  const rules: BPTable<Expression> = {
-    [TokenName.left_paren]: [parenthesized, ___, ___, BP.function_call],
-    [TokenName.right_paren]: [___, ___, ___, ___o],
-    [TokenName.left_brace]: [___, ___, ___, ___o],
-    [TokenName.right_brace]: [___, ___, ___, ___o],
-    [TokenName.left_bracket]: [___, ___, ___, ___o],
-    [TokenName.right_bracket]: [___, ___, ___, ___o],
-    [TokenName.comma]: [___, ___, ___, ___o],
-    [TokenName.colon]: [___, ___, ___, ___o],
-    [TokenName.dot]: [___, ___, ___, ___o],
+  /** Parses a factorial expression. */
+  const factorial = (op: Token, arg: Expression) => {
+    if (!op.isNamed(TokenName.bang)) {
+      return state.error(
+        `Expected a "!" but got "${op._lexeme}"`,
+        op._line,
+        op._column,
+      );
+    }
+    return state.expression(astnode.factorial(op, arg));
+  };
 
-    [TokenName.native_fn]: [___, ___, ___, ___o],
+  /** Parses an algebraic prefix expression. */
+  const algPrefix = (op: Token) => {
+    const p = precof(op._name);
+    const a = expression(p);
+    if (a.isLeft()) return a;
+    const arg = a.unwrap();
+    if (op.isNamed(TokenName.minus)) {
+      return state.expression(astnode.negation(op, arg));
+    }
+    return state.error(
+      `Expected a "-" but got ${op._lexeme}`,
+      op._line,
+      op._column,
+    );
+  };
+
+  const rules: BPTable<Expression> = {
+    [TokenName.left_paren]: [parenthesized, functionCall, BP.function_call],
+    [TokenName.right_paren]: [___, ___, ___o],
+    [TokenName.left_brace]: [set, ___, BP.set],
+    [TokenName.right_brace]: [___, ___, ___o],
+    [TokenName.left_bracket]: [vector, ___, BP.function_call],
+    [TokenName.right_bracket]: [___, ___, ___o],
+    [TokenName.comma]: [___, ___, ___o],
+    [TokenName.colon]: [___, ___, ___o],
+    [TokenName.dot]: [___, ___, ___o],
+
+    [TokenName.native_fn]: [___, ___, ___o],
 
     // Algebraic Binary Operators
-    [TokenName.plus]: [___, algInfix, ___, BP.sum],
-    [TokenName.minus]: [___, algInfix, ___, BP.difference],
-    [TokenName.star]: [___, algInfix, ___, BP.product],
-    [TokenName.slash]: [___, algInfix, ___, BP.quotient],
-    [TokenName.caret]: [___, algInfix, ___, BP.power],
+    [TokenName.plus]: [___, algInfix, BP.sum],
+    [TokenName.minus]: [algPrefix, algInfix, BP.difference],
+    [TokenName.star]: [___, algInfix, BP.product],
+    [TokenName.slash]: [___, algInfix, BP.quotient],
+    [TokenName.caret]: [___, algInfix, BP.power],
 
-    [TokenName.semicolon]: [___, ___, ___, ___o],
-    [TokenName.at]: [___, ___, ___, ___o],
-    [TokenName.star_plus]: [___, ___, ___, ___o],
-    [TokenName.star_minus]: [___, ___, ___, ___o],
-    [TokenName.star_star]: [___, ___, ___, ___o],
-    [TokenName.star_slash]: [___, ___, ___, ___o],
-    [TokenName.bang]: [___, ___, ___, ___o],
-    [TokenName.pound]: [___, ___, ___, ___o],
-    [TokenName.percent]: [___, ___, ___, ___o],
-    [TokenName.equal]: [___, ___, ___, ___o],
-    [TokenName.mod]: [___, ___, ___, ___o],
-    [TokenName.rem]: [___, ___, ___, ___o],
-    [TokenName.div]: [___, ___, ___, ___o],
-    [TokenName.symbolic]: [___, ___, ___, ___o],
-    [TokenName.eroteme]: [___, ___, ___, ___o],
-    [TokenName.vbar]: [___, ___, ___, ___o],
+    [TokenName.semicolon]: [___, ___, ___o],
+
+    // Vector Binary Operators
+    [TokenName.at]: [___, vectorInfix, BP.dot_product],
+    [TokenName.dot_plus]: [___, vectorInfix, BP.dot_sum],
+    [TokenName.dot_minus]: [___, vectorInfix, BP.dot_difference],
+    [TokenName.dot_star]: [___, vectorInfix, BP.dot_mul],
+    [TokenName.dot_slash]: [___, vectorInfix, BP.dot_div],
+
+    [TokenName.bang]: [___, factorial, BP.factorial],
+    [TokenName.pound]: [___, ___, ___o],
+    [TokenName.percent]: [___, parsePercent, BP.quotient],
+    [TokenName.equal]: [___, assignment, BP.assignment],
+    [TokenName.mod]: [___, algInfix, BP.quotient],
+    [TokenName.rem]: [___, algInfix, BP.quotient],
+    [TokenName.symstring]: [___, ___, ___o],
+    [TokenName.eroteme]: [___, conditional, BP.conditional],
+    [TokenName.vbar]: [___, ___, BP.abs],
 
     // comparisons
-    [TokenName.bang_equal]: [___, relation, ___, BP.compare],
-    [TokenName.equal_equal]: [___, relation, ___, BP.compare],
-    [TokenName.less_equal]: [___, relation, ___, BP.compare],
-    [TokenName.greater_equal]: [___, relation, ___, BP.compare],
-    [TokenName.less]: [___, relation, ___, BP.compare],
-    [TokenName.greater]: [___, relation, ___, BP.compare],
-    [TokenName.tilde]: [___, relation, ___, BP.compare],
+    [TokenName.bang_equal]: [___, relation, BP.compare],
+    [TokenName.equal_equal]: [___, relation, BP.compare],
+    [TokenName.less_equal]: [___, relation, BP.compare],
+    [TokenName.greater_equal]: [___, relation, BP.compare],
+    [TokenName.less]: [___, relation, BP.compare],
+    [TokenName.greater]: [___, relation, BP.compare],
+    [TokenName.tilde]: [___, relation, BP.compare],
 
     // string concatenation
-    [TokenName.concat]: [___, concat, ___, BP.string_operation],
+    [TokenName.concat]: [___, concat, BP.string_operation],
 
     // blocks
-    [TokenName.indent]: [___, ___, ___, ___o],
-    [TokenName.dedent]: [___, ___, ___, ___o],
+    [TokenName.indent]: [___, ___, ___o],
+    [TokenName.dedent]: [___, ___, ___o],
 
     // literals
-    [TokenName.string]: [str, ___, ___, BP.atom],
-    [TokenName.integer]: [number, ___, ___, BP.atom],
-    [TokenName.float]: [number, ___, ___, BP.atom],
-    [TokenName.fraction]: [frac, ___, ___, BP.atom],
-    [TokenName.nil]: [nil, ___, ___, BP.atom],
-    [TokenName.bool]: [bool, ___, ___, BP.atom],
-    [TokenName.nan]: [nan, ___, ___, BP.atom],
-    [TokenName.inf]: [inf, ___, ___, BP.atom],
-    [TokenName.symbol]: [sym, ___, ___, BP.atom],
-    [TokenName.constant]: [constant, ___, ___, BP.atom],
+    [TokenName.string]: [str, ___, BP.atom],
+    [TokenName.integer]: [number, ___, BP.atom],
+    [TokenName.float]: [number, ___, BP.atom],
+    [TokenName.fraction]: [frac, ___, BP.atom],
+    [TokenName.nil]: [nil, ___, BP.atom],
+    [TokenName.bool]: [bool, ___, BP.atom],
+    [TokenName.nan]: [nan, ___, BP.atom],
+    [TokenName.inf]: [inf, ___, BP.atom],
+    [TokenName.symbol]: [sym, ___, BP.atom],
+    [TokenName.constant]: [constant, ___, BP.atom],
 
     // logical operations
-    [TokenName.not]: [___, ___, ___, ___o],
-    [TokenName.and]: [___, logInfix, ___, BP.and],
-    [TokenName.nand]: [___, logInfix, ___, BP.nand],
-    [TokenName.or]: [___, logInfix, ___, BP.or],
-    [TokenName.nor]: [___, logInfix, ___, BP.nor],
-    [TokenName.xnor]: [___, logInfix, ___, BP.xnor],
-    [TokenName.imply]: [___, logInfix, ___, BP.imply],
-    [TokenName.nimply]: [___, logInfix, ___, BP.nimply],
-    [TokenName.converse]: [___, logInfix, ___, BP.converse],
-    [TokenName.nonconverse]: [___, logInfix, ___, BP.nonconverse],
-    [TokenName.iff]: [___, logInfix, ___, BP.iff],
+    [TokenName.not]: [___, ___, ___o],
+    [TokenName.and]: [___, logInfix, BP.and],
+    [TokenName.nand]: [___, logInfix, BP.nand],
+    [TokenName.or]: [___, logInfix, BP.or],
+    [TokenName.nor]: [___, logInfix, BP.nor],
+    [TokenName.xnor]: [___, logInfix, BP.xnor],
+    [TokenName.imply]: [___, logInfix, BP.imply],
+    [TokenName.nimply]: [___, logInfix, BP.nimply],
+    [TokenName.converse]: [___, logInfix, BP.converse],
+    [TokenName.nonconverse]: [___, logInfix, BP.nonconverse],
+    [TokenName.iff]: [___, logInfix, BP.iff],
 
     // keywords
-    [TokenName.class]: [___, ___, ___, ___o],
-    [TokenName.if]: [___, ___, ___, ___o],
-    [TokenName.else]: [___, ___, ___, ___o],
-    [TokenName.return]: [___, ___, ___, ___o],
-    [TokenName.super]: [___, ___, ___, ___o],
-    [TokenName.this]: [___, ___, ___, ___o],
-    [TokenName.var]: [___, ___, ___, ___o],
-    [TokenName.const]: [___, ___, ___, ___o],
-    [TokenName.fn]: [___, ___, ___, ___o],
-    [TokenName.eof]: [___, ___, ___, ___o],
-    [TokenName.newline]: [___, ___, ___, ___o],
+    [TokenName.class]: [___, ___, ___o],
+    [TokenName.if]: [___, ___, ___o],
+    [TokenName.else]: [___, ___, ___o],
+    [TokenName.return]: [___, ___, ___o],
+    [TokenName.super]: [___, ___, ___o],
+    [TokenName.this]: [___, ___, ___o],
+    [TokenName.var]: [___, ___, ___o],
+    [TokenName.const]: [___, ___, ___o],
+    [TokenName.fn]: [___, ___, ___o],
+    [TokenName.eof]: [___, ___, ___o],
+    [TokenName.newline]: [___, ___, ___o],
   };
 
   /**
@@ -2208,15 +2813,9 @@ function syn(tokens: Token[]) {
   const infixRule = (t: TokenName): Parslet<Expression> => rules[t][1];
 
   /**
-   * Returns the postfix parsing rule mapped to by the given
-   * token type.
-   */
-  const postfixRule = (t: TokenName): Parslet<Expression> => rules[t][1];
-
-  /**
    * Returns the {@link bp|precedence} of the given token type.
    */
-  const precof = (t: TokenName): BP => rules[t][3];
+  const precof = (t: TokenName): BP => rules[t][2];
 
   /**
    * The rules table comprises mappings from every
@@ -2234,13 +2833,34 @@ function syn(tokens: Token[]) {
     if (lhs.isLeft()) return lhs;
     while (minbp < precof(state._peek._name)) {
       token = state.next();
-			const p = postfixRule(token._name);
       const r = infixRule(token._name);
       const rhs = r(token, lhs.unwrap());
       if (rhs.isLeft()) return rhs;
       lhs = rhs;
     }
     return lhs;
+  };
+
+  const VAR_DECLARATION = () => {
+    const name = state.next();
+    if (!name.isNamed(TokenName.symbol)) {
+      return state.error(
+        `Expected a valid identifier`,
+        name._line,
+        name._column,
+      );
+    }
+    if (!state.nextIs(TokenName.equal)) {
+      return state.error(
+        `Expected an assignment operator "=" after identifier`,
+        state._currentLine,
+        state._currentColumn,
+      );
+    }
+    const init = EXPRESSION();
+    if (init.isLeft()) return init;
+    const value = init.unwrap()._expression;
+    return state.statement(astnode.statement.varDeclaration(name, value));
   };
 
   const EXPRESSION = () => {
@@ -2258,6 +2878,9 @@ function syn(tokens: Token[]) {
   };
 
   const STATEMENT = () => {
+    if (state.nextIs(TokenName.var)) {
+      return VAR_DECLARATION();
+    }
     return EXPRESSION();
   };
 
@@ -2309,6 +2932,8 @@ function weaver(sourceCode: string) {
 }
 
 const r = weaver(`
-unexpand '2x^2 + x + 1'
+var n = 1/4
+var m = 7.841 
+var p = 3.14
 `).run();
 print(r);
