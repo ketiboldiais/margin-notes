@@ -1483,6 +1483,8 @@ interface Visitor<T> {
   factorial(node: FactorialExpression): T;
   exprStmt(node: ExpressionStatement): T;
   varDeclaration(node: VarDeclaration): T;
+  block(node: BlockStatement): T;
+  functionStatement(node: FunctionStatement): T;
 }
 
 /** An enum corresponding to a nodes kind. */
@@ -1515,6 +1517,8 @@ enum Nodekind {
   // statement nodekinds
   expression_statement,
   variable_declaration,
+  block_statement,
+  function_statement,
 }
 
 /** An object representing an AST node. */
@@ -2101,6 +2105,50 @@ class VarDeclaration extends Statement {
   }
 }
 
+/** An ASTNode corresponding to a block statement. */
+class BlockStatement extends Statement {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.block(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.block_statement;
+  }
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
+  _statements: Statement[];
+  constructor(statements: Statement[]) {
+    super();
+    this._statements = statements;
+  }
+}
+
+/** An ASTNode corresponding to a function declaration statement. */
+class FunctionStatement extends Statement {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.functionStatement(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.function_statement;
+  }
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
+  _name: Token<TokenName.symbol>;
+  _params: SymExpression[];
+  _body: Statement[];
+  constructor(
+    name: Token<TokenName.symbol>,
+    params: SymExpression[],
+    body: Statement[],
+  ) {
+    super();
+    this._name = name;
+    this._params = params;
+    this._body = body;
+  }
+}
+
 // This object contains all the ASTNode generators.
 
 const astnode = {
@@ -2164,6 +2212,12 @@ const astnode = {
     expression: (e: Expression) => new ExpressionStatement(e),
     varDeclaration: (sym: Token<TokenName.symbol>, value: Expression) =>
       new VarDeclaration(sym, value),
+    block: (statements: Statement[]) => new BlockStatement(statements),
+    functionDeclaration: (
+      name: Token<TokenName.symbol>,
+      params: SymExpression[],
+      body: Statement[],
+    ) => new FunctionStatement(name, params, body),
   },
 };
 
@@ -2841,6 +2895,94 @@ function syn(tokens: Token[]) {
     return lhs;
   };
 
+  /** Parses a function declaration. */
+  // There are two ways to write functions in LEM.
+  // 1. Single-line declaration: fn f(x) = x^2
+  // 2. Multi-line declaration:
+  //   fn f(x):
+  //       if x < 0: -x
+  //       else: x
+  const FUNCTION_DECLARATION = () => {
+    const name = state.next();
+    // The statement parser brancher already ate the "fn" keyword, so the next
+    // token must be a valid identifier.
+    if (!name.isNamed(TokenName.symbol)) {
+      return state.error(
+        `Expected a valid identifier for the function's name, but got "${name._lexeme}".`,
+        name._line,
+        name._column,
+      );
+    }
+    // Following the identifier must be a left parenthesis.
+    if (!state.nextIs(TokenName.left_paren)) {
+      return state.error(
+        `Expected a "(" to begin the parameter list`,
+        state._currentLine,
+        state._currentColumn,
+      );
+    }
+    // Now gather the parameters.
+    const params: Token<TokenName.symbol>[] = [];
+    if (!state._peek.isNamed(TokenName.right_paren)) {
+      do {
+        const expression = state.next();
+        if (!expression.isNamed(TokenName.symbol)) {
+          return state.error(
+            `Expected a valid identifier as a parameter, but got "${expression._lexeme}"`,
+            expression._line,
+            expression._column,
+          );
+        }
+        params.push(expression);
+      } while (state.nextIs(TokenName.comma));
+    }
+    if (!state.nextIs(TokenName.right_paren)) {
+      return state.error(
+        `Expected a ")" to close the parameter list.`,
+        state._currentLine,
+        state._currentColumn,
+      );
+    }
+    if (state.nextIs(TokenName.equal)) {
+      const body = EXPRESSION();
+      return body.chain((b) =>
+        state.statement(
+          astnode.statement.functionDeclaration(
+            name,
+            params.map((s) => astnode.sym(s)),
+            [b],
+          ),
+        ),
+      );
+    }
+    if (!state.nextIs(TokenName.colon)) {
+      return state.error(
+        `Expected a colon to begin the function's body`,
+        state._currentLine,
+        state._currentColumn,
+      );
+    }
+    state.nextIs(TokenName.newline);
+    if (!state.nextIs(TokenName.indent)) {
+      return state.error(
+        `Expected an indent to open the function's body`,
+        state._currentLine,
+        state._currentColumn,
+      );
+    }
+    const body = BLOCK();
+    return body.chain((b) =>
+      state.statement(
+        astnode.statement.functionDeclaration(
+          name,
+          params.map((p) => astnode.sym(p)),
+          b._statements,
+        ),
+      ),
+    );
+  };
+
+  /** Parses a variable declaration. */
   const VAR_DECLARATION = () => {
     const name = state.next();
     if (!name.isNamed(TokenName.symbol)) {
@@ -2877,9 +3019,37 @@ function syn(tokens: Token[]) {
     );
   };
 
-  const STATEMENT = () => {
+  const BLOCK = (): Either<Glitch, BlockStatement> => {
+    const statements: Statement[] = [];
+    while (!state.atEnd() && !state.check(TokenName.dedent)) {
+      const stmt = STATEMENT();
+      if (stmt.isLeft()) return stmt;
+      statements.push(stmt.unwrap());
+    }
+    if (
+      state.nextIs(TokenName.dedent) ||
+      state.nextIs(TokenName.newline) ||
+      state._peek.isNamed(TokenName.eof)
+    ) {
+      return state.statement(astnode.statement.block(statements));
+    } else {
+      return state.error(
+        `Expected a dedentation to close the block`,
+        state._currentLine,
+        state._currentColumn,
+      );
+    }
+  };
+
+  const STATEMENT = (): Either<Glitch, Statement> => {
     if (state.nextIs(TokenName.var)) {
       return VAR_DECLARATION();
+    }
+    if (state.nextIs(TokenName.fn)) {
+      return FUNCTION_DECLARATION();
+    }
+    if (state.nextIs(TokenName.indent)) {
+      return BLOCK();
     }
     return EXPRESSION();
   };
@@ -2932,8 +3102,9 @@ function weaver(sourceCode: string) {
 }
 
 const r = weaver(`
-var n = 1/4
-var m = 7.841 
-var p = 3.14
+if x < 2:
+  x = 5
+else
+  y = 10
 `).run();
 print(r);
