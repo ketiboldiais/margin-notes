@@ -102,15 +102,479 @@ export function print<T>(source: T) {
   return source;
 }
 
+// Now we'll write some common functional programming
+// types for boxes. The following types, `None` and
+// `Some`, correspond to functional option types.
+// We will use these types extensively when implementing
+// the linked list.
+
+/** An object corresponding to nothing. */
+class None {
+  _tag = "None" as const;
+  constructor() {}
+  map(): None {
+    return new None();
+  }
+}
+
+/** An object corresponding to something. */
+class Some<T> {
+  readonly value: T;
+  _tag = "Some" as const;
+  constructor(value: T) {
+    this.value = value;
+  }
+  /**
+   * Applies the given function `f` to
+   * the data held by this object.
+   */
+  map<S>(f: (a: T) => S): Some<S> {
+    return new Some(f(this.value));
+  }
+}
+
+/** Returns a new Some with value of type `T`. */
+function some<T>(value: T) {
+  return new Some<T>(value);
+}
+
+/** Returns a new None. */
+function none() {
+  return new None();
+}
+
+/** A union type of None or Some<T>. */
+type Option<T> = None | Some<T>;
+
+/** A data structure with two pointers, left and right. */
+class Binode<T> {
+  _data: T | null;
+  private _R: Option<Binode<T>>;
+  private _L: Option<Binode<T>>;
+  constructor(data: T | null) {
+    this._data = data;
+    this._R = none();
+    this._L = none();
+  }
+
+  /**
+   * Returns a copy of this bnode.
+   */
+  copy() {
+    const out = new Binode(this._data);
+    const left = this._L;
+    const right = this._R;
+    out._L = left;
+    out._R = right;
+    return out;
+  }
+
+  /**
+   * Flattens this bnode.
+   */
+  flatten(): Binode<T> | T {
+    return this._data === null ? Binode.none<T>() : this._data;
+  }
+
+  /**
+   * Applies the given callback to the data held
+   * by this binode.
+   */
+  map<K>(callback: (data: T) => K) {
+    if (this._data) {
+      return Binode.some<K>(callback(this._data));
+    } else return Binode.none<K>();
+  }
+
+  /**
+   * Sets the value of this bnode.
+   */
+  set value(data: T) {
+    this._data = data;
+  }
+
+  do<K>(f: (d: T) => K) {
+    if (this._data !== null) {
+      f(this._data);
+    }
+    return this;
+  }
+
+  isSomething() {
+    return this._data !== null;
+  }
+
+  isNothing() {
+    return this._data === null;
+  }
+
+  static none<T>() {
+    return new Binode<T>(null);
+  }
+
+  static some<T>(data: T) {
+    return new Binode(data);
+  }
+
+  get _prev() {
+    if (this._L._tag === "None") {
+      return new Binode<T>(null);
+    } else {
+      return this._L.value;
+    }
+  }
+
+  set _prev(node: Binode<T>) {
+    this._L = some(node);
+  }
+
+  get _next() {
+    if (this._R._tag === "None") {
+      return new Binode<T>(null);
+    } else {
+      return this._R.value;
+    }
+  }
+
+  set _next(node: Binode<T>) {
+    this._R = some(node);
+  }
+
+  get _left() {
+    return this._prev;
+  }
+
+  set _left(node: Binode<T>) {
+    this._prev = node;
+  }
+
+  get _right() {
+    return this._next;
+  }
+
+  set _right(node: Binode<T>) {
+    this._next = node;
+  }
+}
+
+/** Returns a new binode. */
+function binode<T>(data: T | null = null) {
+  return new Binode(data);
+}
+
 /**
- * A high entropy key generator. Less the risk
- * of duplicate collisions based on timestamp.
- * @returns a string.
+ * A data structure implementing
+ * a linked list with elements
+ * of type T.
  */
-function hentKey() {
-  const timestamp = Date.now().toString(36);
-  const randomPart = Math.random().toString(36).substring(2, 7);
-  return `${timestamp}-${randomPart}`;
+class LinkedList<T> {
+  /**
+   * @internal Pointer to the first
+   * element of the linked list.
+   */
+  private head: Binode<T>;
+  /**
+   * @internal Pointer to the last
+   * element of the linked list.
+   */
+  private tail: Binode<T>;
+  /**
+   * @internal counter for keeping
+   * track of how many elements are
+   * in this linked list.
+   */
+  private count: number;
+  /**
+   * Returns a copy of this list
+   * without the first element.
+   * @example
+   * ~~~ts
+   * const x = linkedList([1,2,3,4]) // x = (1,2,3,4)
+   * const y = x.cdr() // y = (2,3,4)
+   * ~~~
+   */
+  cdr() {
+    const list = this.clone();
+    if (list.isEmpty) return list;
+    const previousHead = list.head;
+    if (list.count === 1) {
+      list.head = binode();
+      list.tail = binode();
+    } else {
+      list.head = previousHead._right!;
+      list.head._left = binode();
+      previousHead._right = binode();
+    }
+    list.count--;
+    return list;
+  }
+  car() {
+    if (this.isEmpty) return this;
+    const head = this.head._data!;
+    return new LinkedList<T>().push(head);
+  }
+  /**
+   * Removes all elements in this list.
+   */
+  clear() {
+    this.head = binode();
+  }
+  get length() {
+    return this.count;
+  }
+  get isEmpty() {
+    return this.count === 0 || this.head.isNothing();
+  }
+  constructor() {
+    this.count = 0;
+    this.head = binode();
+    this.tail = binode();
+  }
+  *[Symbol.iterator](): IterableIterator<T> {
+    let node = this.head;
+    while (node._data !== null) {
+      yield node._data;
+      node = node._right;
+    }
+  }
+  /**
+   * Returns this linked list as an array.
+   */
+  toArray(): T[] {
+    return [...this];
+  }
+  /**
+   * Returns true if the index passed
+   * is within the bounds of this list.
+   */
+  safeIdx(i: number) {
+    return 0 <= i && i < this.count;
+  }
+  /**
+   * Sets the given element at the
+   * given index within this list.
+   */
+  set(element: T, index: number) {
+    const node = this.at(index);
+    node._data = element;
+    return this;
+  }
+
+  private at(index: number) {
+    if (!this.safeIdx(index)) {
+      return binode<T>();
+    } else {
+      let count = 0;
+      let current = this.head;
+      while (count !== index) {
+        const k = current._right;
+        if (k.isNothing()) break;
+        current = k;
+        count++;
+      }
+      return current;
+    }
+  }
+
+  map<K>(f: (data: T, index: number, list: LinkedList<T>) => K) {
+    const list = new LinkedList<K>();
+    this.forEach((d, i, l) => list.push(f(d, i, l)));
+    return list;
+  }
+
+  forEach(f: (data: T, index: number, list: LinkedList<T>) => void) {
+    if (this.isEmpty) return this;
+    let node = this.head;
+    let i = 0;
+    while (i < this.count) {
+      node.do((d) => f(d, i, this));
+      node = node._right;
+      i++;
+    }
+  }
+
+  /**
+   * Returns a copy of this linked list.
+   */
+  clone() {
+    const list = new LinkedList<T>();
+    this.forEach((d) => list.push(d));
+    return list;
+  }
+
+  #reduce<X>(
+    from: 0 | 1,
+    reducer: (
+      accumulator: X,
+      currentValue: T,
+      index: number,
+      list: LinkedList<T>,
+    ) => X,
+    initialValue: X,
+  ) {
+    let i = 0;
+    const fn = (list: LinkedList<T>, init: X): X => {
+      if (list.isEmpty) return init;
+      else {
+        const popped = list[from === 0 ? "shift" : "pop"]();
+        if (popped._tag === "None") return init;
+        const updatedValue = reducer(init, popped.value, i++, list);
+        return fn(list, updatedValue);
+      }
+    };
+    return fn(this.clone(), initialValue);
+  }
+
+  reduceRight<X>(
+    reducer: (
+      accumulator: X,
+      currentValue: T,
+      index: number,
+      list: LinkedList<T>,
+    ) => X,
+    initialValue: X,
+  ): X {
+    return this.#reduce(1, reducer, initialValue);
+  }
+
+  reduce<X>(
+    reducer: (
+      accumulator: X,
+      currentValue: T,
+      index: number,
+      list: LinkedList<T>,
+    ) => X,
+    initialValue: X,
+  ): X {
+    return this.#reduce(0, reducer, initialValue);
+  }
+
+  /** Returns the string representation of this list, with each element jointed by the given separator (defaults to the empty string). */
+  join(separator: string = "") {
+    return [...this].join(separator);
+  }
+
+  /** Returns th string representation of this list. */
+  toString(f?: (x: T, index: number) => string) {
+    const out = this.clone();
+    const g = f ? f : (x: T) => x;
+    return "(" + out.map((d, i) => g(d, i)).join(",") + ")";
+  }
+
+  /** Returns a new list whose elements satisfy the given predicate. */
+  filter(predicate: (value: T, index: number, list: LinkedList<T>) => boolean) {
+    const out = new LinkedList<T>();
+    this.forEach((n, i, list) => predicate(n, i, list) && out.push(n));
+    return out;
+  }
+
+  /** Reverses this list. */
+  reverse() {
+    let current = this.head;
+    let i = 0;
+    while (current.isSomething() && i < this.count) {
+      const right = current._right;
+      current._right = current._left;
+      current._left = right;
+      const k = current._left;
+      if (k.isNothing() || i > this.count) break;
+      current = k;
+      i++;
+    }
+    const tail = this.tail;
+    this.tail = this.head;
+    this.head = tail;
+    return this;
+  }
+
+  /** Returns the element at the given index. */
+  item(index: number) {
+    return this.at(index)._data;
+  }
+
+  zip<K>(list: LinkedList<K>) {
+    const out = new LinkedList<[T, K]>();
+    this.forEach((d, i) => {
+      const x = list.item(i);
+      if (x !== null) {
+        const element: [T, K] = [d, x] as [T, K];
+        out.push(element);
+      }
+    });
+    return out;
+  }
+
+  /** Removes the last element of this list. */
+  pop(): Option<T> {
+    if (this.isEmpty) return none();
+    const popped = this.tail;
+    if (this.length === 1) {
+      this.head = binode();
+      this.tail = binode();
+    } else {
+      this.tail = popped._left;
+      this.tail._right = binode();
+      popped._left = binode();
+    }
+    this.count--;
+    return popped._data === null ? none() : some(popped._data);
+  }
+
+  /** Inserts the given element at the head of this list.*/
+  unshift(element: T) {
+    const node = binode(element);
+    if (this.isEmpty) {
+      this.head = node;
+      this.tail = node;
+    } else {
+      this.head._prev = node;
+      node._next = this.head;
+      this.head = node;
+    }
+    this.count++;
+    return this;
+  }
+
+  /** Removes the first element of this list. */
+  shift() {
+    if (this.isEmpty) return none();
+    const previousHead = this.head;
+    if (this.length === 1) {
+      this.head = binode();
+      this.tail = binode();
+    } else {
+      this.head = previousHead._next;
+      this.head._prev = binode();
+      previousHead._prev = binode();
+    }
+    this.count--;
+    return previousHead._data === null ? none() : some(previousHead._data);
+  }
+
+  /** Inserts the given element to this list. */
+  push(element: T) {
+    const node = binode(element);
+    if (this.head.isNothing()) {
+      this.head = node;
+      this.tail = node;
+    } else {
+      this.tail._next = node;
+      node._prev = this.tail;
+      this.tail = node;
+    }
+    this.count++;
+    return this;
+  }
+
+  /** Inserts the given elements to this list. */
+  append(...elements: T[]) {
+    elements.forEach((e) => this.push(e));
+    return this;
+  }
+}
+
+function linkedList<T>(...elements: T[]) {
+  return new LinkedList<T>().append(...elements);
 }
 
 // Either Type
@@ -167,100 +631,6 @@ class Right<T> {
 
 /** Returns a new Right with value `x` of type `T`. */
 const right = <T>(x: T) => new Right(x);
-
-abstract class Maybe<T> {
-  static some<T>(value: T): Maybe<T> {
-    return new Some(value);
-  }
-
-  static none<T>(): Maybe<T> {
-    return new None<T>();
-  }
-
-  static fromNullable<T>(value: T | null | undefined): Maybe<NonNullable<T>> {
-    return value == null
-      ? Maybe.none<NonNullable<T>>()
-      : Maybe.some(value as NonNullable<T>);
-  }
-
-  abstract isSome(): this is Some<T>;
-
-  abstract isNone(): this is None<T>;
-
-  abstract map<U>(fn: (value: T) => U): Maybe<U>;
-
-  abstract flatMap<U>(fn: (value: T) => Maybe<U>): Maybe<U>;
-
-  abstract getOrElse(defaultValue: T): T;
-
-  abstract unwrap(): T;
-
-  abstract match<U>(cases: { some: (value: T) => U; none: () => U }): U;
-}
-
-class Some<T> extends Maybe<T> {
-  constructor(readonly value: T) {
-    super();
-  }
-
-  isSome(): this is Some<T> {
-    return true;
-  }
-
-  isNone(): this is None<T> {
-    return false;
-  }
-
-  map<U>(fn: (value: T) => U): Maybe<U> {
-    return Maybe.some(fn(this.value));
-  }
-
-  flatMap<U>(fn: (value: T) => Maybe<U>): Maybe<U> {
-    return fn(this.value);
-  }
-
-  getOrElse(_defaultValue: T): T {
-    return this.value;
-  }
-
-  unwrap(): T {
-    return this.value;
-  }
-
-  match<U>(cases: { some: (value: T) => U; none: () => U }): U {
-    return cases.some(this.value);
-  }
-}
-
-class None<T> extends Maybe<T> {
-  isSome(): this is Some<T> {
-    return false;
-  }
-
-  isNone(): this is None<T> {
-    return true;
-  }
-
-  map<U>(_fn: (value: T) => U): Maybe<U> {
-    return Maybe.none<U>();
-  }
-
-  flatMap<U>(_fn: (value: T) => Maybe<U>): Maybe<U> {
-    return Maybe.none<U>();
-  }
-
-  getOrElse(defaultValue: T): T {
-    return defaultValue;
-  }
-
-  unwrap(): T {
-    throw new Error("Cannot unwrap None");
-  }
-
-  match<U>(cases: { some: (value: T) => U; none: () => U }): U {
-    return cases.none();
-  }
-}
 
 /** A Primitive object type. */
 type Primitive = string | number | null | boolean;
@@ -335,6 +705,88 @@ function glitch(
   column: number = 0,
 ) {
   return new Glitch(message, type, line, column);
+}
+
+/** Returns the sign of a given number. */
+function signum(x: number): -1 | 1 | 0 {
+  return x < 0 ? -1 : x > 0 ? 1 : 0;
+}
+
+/** Returns the greatest common divisor of two numbers, `a` and `b`. */
+function gcd(a: number, b: number): number {
+  let t;
+  while (b !== 0) {
+    t = b;
+    b = a % b;
+    a = t;
+  }
+  return a;
+}
+
+/**
+ * Reduces the given fraction `numerator/denominator` to its simplest form.
+ * The return is a pair [reduced numerator, reduced denominator].
+ */
+function simplestFraction(
+  numerator: number,
+  denominator: number,
+): [number, number] {
+  const sgn = Math.sign(numerator) * Math.sign(denominator);
+  const n = Math.abs(numerator);
+  const d = Math.abs(denominator);
+  const f = gcd(n, d);
+  return [(sgn * n) / f, d / f] as [number, number];
+}
+
+/** Returns `true` if the fractions `a` and `b` are equal. */
+function fracEqual(a: [number, number], b: [number, number]) {
+  const n = simplestFraction(a[0], a[1]);
+  const m = simplestFraction(b[0], b[1]);
+  return n[0] === m[0] && n[1] === m[1];
+}
+
+/** Returns the product of a * b, where a and b are fractions. */
+function fracTimes(a: [number, number], b: [number, number]): [number, number] {
+  return simplestFraction(a[0] * b[0], a[1] * b[1]);
+}
+
+/** Returns the quotient of a/b, where a and b are fractions. */
+function fracDiv(a: [number, number], b: [number, number]): [number, number] {
+  return simplestFraction(a[0] * b[1], a[1] * b[0]);
+}
+
+/** Returns the sum of a + b, where a and b are fractions. */
+function fracSum(a: [number, number], b: [number, number]): [number, number] {
+  const a_numerator = a[0];
+  const a_denominator = a[1];
+  const b_numerator = b[0];
+  const b_denominator = b[1];
+  return simplestFraction(
+    a_numerator * b_denominator + b_numerator * a_denominator,
+    a_denominator * b_denominator,
+  );
+}
+
+/** Returns the difference a - b, where a and b are fractions. */
+function fracMinus(a: [number, number], b: [number, number]): [number, number] {
+  const a_numerator = a[0];
+  const a_denominator = a[1];
+  const b_numerator = b[0];
+  const b_denominator = b[1];
+  return simplestFraction(
+    a_numerator * b_denominator - b_numerator * a_denominator,
+    a_denominator * b_denominator,
+  );
+}
+
+/** Returns the sign of the given bigint. */
+function bigSign(x: bigint): -1n | 0n | 1n {
+  return x < 0n ? -1n : x > 0n ? 1n : 0n;
+}
+
+/** Returns the absolute value of the given bigint. */
+function bigAbs(x: bigint): bigint {
+  return x < 0n ? -x : x;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -475,6 +927,7 @@ enum TokenName {
   integer, // Handler: scanNumber
   float, // Handler: scanNumber
   fraction, // Handler: scanNumber
+  imaginary,
   nil, // Handler: scanIdentifier, in keywords record
   bool, // Handler: scanIdentifier, in keywords record
 
@@ -553,11 +1006,15 @@ enum TokenName {
   /** Lexeme: `this` */
   this, // Handler: scanIdentifier, in keywords record
   /** Lexeme: `var` */
-  var, // Handler: scanIdentifier, in keywords record
+  let, // Handler: scanIdentifier, in keywords record
   /** Lexeme: `const` */
   const, // Handler: scanIdentifier: in keywords record
   /** Lexeme: `fn` */
   fn, // Handler: scanIdentifier, in keywords record
+  /** Lexeme: `while` */
+  while, // Handler: scanIdentifier, in keywords record
+  /** Lexeme: `print` */
+  print,
 
   // special tokens
   eof,
@@ -662,73 +1119,84 @@ class Token<T extends TokenName = TokenName> {
   /** Returns the string-form of the given TokenName.  */
   static tokenTypeName(name: TokenName): string {
     // prettier-ignore
-    switch (name) {
-      case TokenName.left_paren: return "left_paren";
-      case TokenName.right_paren: return "right_paren";
-      case TokenName.left_brace: return "left_brace";
-      case TokenName.right_brace: return "right_brace";
-      case TokenName.left_bracket: return "left_bracket";
-      case TokenName.right_bracket: return "right_bracket";
-      case TokenName.comma: return "comma";
-      case TokenName.dot: return "dot";
-      case TokenName.minus: return "minus";
-      case TokenName.plus: return "plus";
-      case TokenName.semicolon: return "semicolon";
-      case TokenName.slash: return "slash";
-      case TokenName.star: return "star";
-      case TokenName.at: return "at";
-      case TokenName.bang: return "bang";
-      case TokenName.pound: return "pound";
-      case TokenName.percent: return "percent";
-      case TokenName.caret: return "caret";
-      case TokenName.equal: return "equal";
-      case TokenName.eroteme: return "eroteme";
-			case TokenName.constant: return "constant";
-      case TokenName.less: return "less";
-      case TokenName.greater: return "greater";
-      case TokenName.colon: return "colon";
-      case TokenName.vbar: return "vbar";
-      case TokenName.tilde: return "tilde";
-      case TokenName.indent: return "indent";
-      case TokenName.dedent: return "dedent";
-      case TokenName.bang_equal: return "bang_equal";
-      case TokenName.equal_equal: return "equal_equal";
-      case TokenName.less_equal: return "less_equal";
-      case TokenName.greater_equal: return "greater_equal";
-      case TokenName.symbol: return "symbol";
-      case TokenName.string: return "string";
-      case TokenName.integer: return "integer";
-      case TokenName.float: return "float";
-      case TokenName.fraction: return "fraction";
-      case TokenName.not: return "not";
-      case TokenName.and: return "and";
-      case TokenName.nand: return "nand";
-      case TokenName.bool: return "bool";
-      case TokenName.or: return "or";
-      case TokenName.nor: return "nor";
-      case TokenName.xnor: return "xnor";
-      case TokenName.imply: return "imply";
-      case TokenName.nimply: return "nimply";
-      case TokenName.converse: return "converse";
-      case TokenName.nonconverse: return "nonconverse";
-      case TokenName.iff: return "iff";
-      case TokenName.nil: return "nil";
-      case TokenName.nan: return "nan";
-      case TokenName.inf: return "inf";
-      case TokenName.class: return "class";
-      case TokenName.if: return "if";
-      case TokenName.else: return "else";
-      case TokenName.return: return "return";
-      case TokenName.super: return "super";
-      case TokenName.this: return "this";
-      case TokenName.var: return "var";
-      case TokenName.const: return "const";
-      case TokenName.fn: return "fn";
-      case TokenName.eof: return "eof";
-      case TokenName.newline: return "newline";
-      case TokenName.symstring: return "symstring";
-      default: return "unknown";
-    }
+    const names: Record<TokenName, string> = {
+			[TokenName.left_paren]: "left_paren",
+			[TokenName.right_paren]: "right_paren",
+			[TokenName.left_brace]: "left_brace",
+			[TokenName.right_brace]: "right_brace",
+			[TokenName.left_bracket]: "left_bracket",
+			[TokenName.right_bracket]: "right_bracket",
+			[TokenName.comma]: "comma",
+			[TokenName.colon]: "colon",
+			[TokenName.dot]: "dot",
+			[TokenName.minus]: "minus",
+			[TokenName.plus]: "plus",
+			[TokenName.slash]: "slash",
+			[TokenName.semicolon]: "semicolon",
+			[TokenName.star]: "star",
+			[TokenName.bang]: "bang",
+			[TokenName.pound]: "pound",
+			[TokenName.percent]: "percent",
+			[TokenName.caret]: "caret",
+			[TokenName.equal]: "equal",
+			[TokenName.symstring]: "symstring",
+			[TokenName.concat]: "concat",
+			[TokenName.mod]: "mod",
+			[TokenName.rem]: "rem",
+			[TokenName.eroteme]: "eroteme",
+			[TokenName.less]: "less",
+			[TokenName.greater]: "greater",
+			[TokenName.vbar]: "vbar",
+			[TokenName.tilde]: "tilde",
+			[TokenName.bang_equal]: "bang_equal",
+			[TokenName.equal_equal]: "equal_equal",
+			[TokenName.less_equal]: "less_equal",
+			[TokenName.greater_equal]: "greater_equal",
+			[TokenName.native_fn]: "native_fn",
+			[TokenName.at]: "at",
+			[TokenName.dot_plus]: "dot_plus",
+			[TokenName.dot_minus]: "dot_minus",
+			[TokenName.dot_star]: "dot_star",
+			[TokenName.dot_slash]: "dot_slash",
+			[TokenName.indent]: "indent",
+			[TokenName.dedent]: "dedent",
+			[TokenName.string]: "string",
+			[TokenName.integer]: "integer",
+			[TokenName.float]: "float",
+			[TokenName.fraction]: "fraction",
+			[TokenName.imaginary]: "imaginary",
+			[TokenName.nil]: "nil",
+			[TokenName.bool]: "bool",
+			[TokenName.nan]: "nan",
+			[TokenName.inf]: "inf",
+			[TokenName.symbol]: "symbol",
+			[TokenName.constant]: "constant",
+			[TokenName.not]: "not",
+			[TokenName.and]: "and",
+			[TokenName.nand]: "nand",
+			[TokenName.or]: "or",
+			[TokenName.nor]: "nor",
+			[TokenName.xnor]: "xnor",
+			[TokenName.imply]: "imply",
+			[TokenName.nimply]: "nimply",
+			[TokenName.converse]: "converse",
+			[TokenName.nonconverse]: "nonconverse",
+			[TokenName.iff]: "iff",
+			[TokenName.class]: "class",
+			[TokenName.if]: "if",
+			[TokenName.else]: "else",
+			[TokenName.return]: "return",
+			[TokenName.super]: "super",
+			[TokenName.this]: "this",
+			[TokenName.let]: "let",
+			[TokenName.const]: "const",
+			[TokenName.fn]: "fn",
+			[TokenName.while]: "while",
+			[TokenName.print]: "print",
+			[TokenName.eof]: "eof",
+			[TokenName.newline]: "newline"
+		}
+    return names[name];
   }
   static empty() {
     return new Token(TokenName.nil, "nil", 0, 0, null);
@@ -802,7 +1270,6 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
     log10e: Math.LOG10E,
     log2e: Math.LOG2E,
     sqrt2: Math.SQRT2,
-    i: null,
   };
   const universalConstants: Record<string, Primitive> = {
     ...default_universalConstants,
@@ -821,14 +1288,17 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
     nil: TokenName.nil,
     NaN: TokenName.nan,
     Inf: TokenName.inf,
+    i: TokenName.imaginary,
     class: TokenName.class,
     if: TokenName.if,
     else: TokenName.else,
     return: TokenName.return,
     super: TokenName.super,
     this: TokenName.this,
-    var: TokenName.var,
+    let: TokenName.let,
     const: TokenName.const,
+    while: TokenName.while,
+    print: TokenName.print,
     fn: TokenName.fn,
     mod: TokenName.mod,
     rem: TokenName.rem,
@@ -1306,8 +1776,12 @@ function lex(program: string, constants: Record<string, Primitive> = {}) {
 type ExprKind =
   | "int"
   | "float"
+  | "imaginary"
+  | "complex"
   | "nil"
   | "string"
+  | "bool"
+  | "indefinite"
   | "difference"
   | "sum"
   | "quotient"
@@ -1315,127 +1789,93 @@ type ExprKind =
   | "power"
   | "symbol"
   | "negate"
+  | "unknown"
   | "fraction";
 
-abstract class EXPR {
+abstract class EXPRESSION {
+  abstract toString(): string;
   kind: ExprKind;
   constructor(kind: ExprKind) {
     this.kind = kind;
   }
 }
 
-class INT extends EXPR {
+abstract class REAL extends EXPRESSION {
+  kind: "int" | "float" | "fraction";
+  constructor(kind: "int" | "float" | "fraction") {
+    super(kind);
+    this.kind = kind;
+  }
+  abstract get numeric(): number;
+  abstract get sign(): -1 | 0 | 1;
+  abstract negate(): REAL;
+  get imaginary(): INT {
+    return int(0);
+  }
+  abstract isZero(): boolean;
+}
+
+/**
+ * Returns `true` if the given `expr` is a `REAL`
+ * number (a `FLOAT` or an `INT`).
+ */
+function isReal(expr: EXPRESSION): expr is REAL {
+  return expr instanceof REAL;
+}
+
+class INT extends REAL {
   value: number;
   constructor(value: number) {
     super("int");
     this.value = value;
   }
+  negate() {
+    return int(-this.value);
+  }
+  get sign() {
+    return signum(this.value);
+  }
+  get numeric() {
+    return this.value;
+  }
+  isZero() {
+    return this.value === 0;
+  }
+  toString(): string {
+    return `${this.value}`;
+  }
 }
 
 const int = (value: number) => new INT(value);
+const isInt = (x: EXPRESSION): x is INT => x.kind === "int";
 
-class FLOAT extends EXPR {
+class FLOAT extends REAL {
   value: number;
   constructor(value: number) {
     super("float");
     this.value = value;
   }
+  negate() {
+    return float(-this.value);
+  }
+  get sign() {
+    return signum(this.value);
+  }
+  get numeric() {
+    return this.value;
+  }
+  isZero() {
+    return this.value === 0;
+  }
+  toString(): string {
+    return `${this.value}`;
+  }
 }
 
 const float = (value: number) => new FLOAT(value);
+const isFloat = (x: EXPRESSION): x is FLOAT => x.kind === "float";
 
-class NIL extends EXPR {
-  value: null = null;
-  constructor() {
-    super("nil");
-  }
-}
-
-const nil = () => new NIL();
-
-class STR extends EXPR {
-  value: string;
-  constructor(value: string) {
-    super("string");
-    this.value = value;
-  }
-}
-
-const str = (value: string) => new STR(value);
-
-class DIFF extends EXPR {
-  args: [EXPR, EXPR];
-  constructor(left: EXPR, right: EXPR) {
-    super("difference");
-    this.args = [left, right];
-  }
-}
-
-const diff = (left: EXPR, right: EXPR) => new DIFF(left, right);
-
-class SUM extends EXPR {
-  args: EXPR[];
-  constructor(args: EXPR[]) {
-    super("sum");
-    this.args = args;
-  }
-}
-
-const sum = (args: EXPR[]) => new SUM(args);
-
-class QUOT extends EXPR {
-  args: [EXPR, EXPR];
-  constructor(left: EXPR, right: EXPR) {
-    super("quotient");
-    this.args = [left, right];
-  }
-}
-
-class PRODUCT extends EXPR {
-  args: EXPR[];
-  constructor(args: EXPR[]) {
-    super("product");
-    this.args = args;
-  }
-}
-
-const prod = (args: EXPR[]) => new PRODUCT(args);
-
-class POWER extends EXPR {
-  args: [EXPR, EXPR];
-  constructor(base: EXPR, exponent: EXPR) {
-    super("power");
-    this.args = [base, exponent];
-  }
-}
-
-const power = (base: EXPR, exponent: EXPR) => new POWER(base, exponent);
-
-class SYMBOL extends EXPR {
-  sym: string;
-  value: EXPR;
-  constructor(sym: string, value: EXPR = nil()) {
-    super("symbol");
-    this.sym = sym;
-    this.value = nil();
-  }
-  val(x: EXPR) {
-    this.value = x;
-    return this;
-  }
-}
-
-const sym = (s: string) => new SYMBOL(s);
-
-class NEG extends EXPR {
-  arg: EXPR;
-  constructor(arg: EXPR) {
-    super("negate");
-    this.arg = arg;
-  }
-}
-
-class FRAC extends EXPR {
+class FRAC extends REAL {
   num: number;
   den: number;
   constructor(n: number, d: number) {
@@ -1443,7 +1883,572 @@ class FRAC extends EXPR {
     this.num = n;
     this.den = d;
   }
+  negate() {
+    return frac(-this.num, Math.abs(this.den));
+  }
+  get sign() {
+    return signum(this.numeric);
+  }
+  get numeric() {
+    return this.num / this.den;
+  }
+  isZero() {
+    return this.num === 0;
+  }
+  pair() {
+    return [this.num, this.den] as [number, number];
+  }
+  toString() {
+    return `${this.num}/${this.den}`;
+  }
 }
+
+const frac = (n: number, d: number) => new FRAC(n, d);
+const isFrac = (x: EXPRESSION): x is FRAC => x.kind === "fraction";
+
+type NUMERIC = REAL | IMAGINARY | COMPLEX;
+
+/**
+ * Returns true if the given expression is
+ * real, imaginary, or complex (a numeric type).
+ */
+function isNumeric(expr: EXPRESSION): expr is NUMERIC {
+  return isReal(expr) || isImaginary(expr) || isComplex(expr);
+}
+
+/** Adds two real numbers. */
+function addR2(left: REAL, right: REAL): REAL {
+  // case: int + int
+  if (isInt(left) && isInt(right)) {
+    return int(left.value + right.value);
+  }
+  // case: float + float
+  if (isFloat(left) && isFloat(right)) {
+    return float(left.value + right.value);
+  }
+  // case: int + float
+  if (isInt(left) && isFloat(right)) {
+    return float(left.value + right.value);
+  }
+  // case: float + int
+  if (isFloat(left) && isInt(right)) {
+    return float(left.value + right.value);
+  }
+  // case: frac + frac
+  if (isFrac(left) && isFrac(right)) {
+    const result = fracSum(left.pair(), right.pair());
+    return frac(result[0], result[1]);
+  }
+  // case: frac + int
+  if (isFrac(left) && isInt(right)) {
+    const result = fracSum([left.num, left.den], [right.value, 1]);
+    return frac(result[0], result[1]);
+  }
+  // case: int + frac
+  if (isInt(left) && isFrac(right)) {
+    const result = fracSum([right.num, right.den], [left.value, 1]);
+    return frac(result[0], result[1]);
+  }
+  // case: frac + float
+  if (isFrac(left) && isFloat(right)) {
+    const l = left.numeric;
+    const r = right.value;
+    return float(l + r);
+  }
+  // case: float + frac
+  if (isFloat(left) && isFrac(right)) {
+    const l = left.value;
+    const r = right.numeric;
+    return float(l + r);
+  }
+  // unreachable
+  throw glitch(
+    `Unhandled addR2 arguments: ${left.kind} + ${right.kind}`,
+    "runtime-error",
+  );
+}
+
+function add2(left: NUMERIC, right: NUMERIC) {
+  // case: int + int
+  if (isInt(left) && isInt(right)) {
+    return int(left.value + right.value);
+  }
+  // case: float + float
+  if (isFloat(left) && isFloat(right)) {
+    return float(left.value + right.value);
+  }
+  // case: int + float
+  if (isInt(left) && isFloat(right)) {
+    return float(left.value + right.value);
+  }
+  // case: float + int
+  if (isFloat(left) && isInt(right)) {
+    return float(left.value + right.value);
+  }
+  // case: frac + frac
+  if (isFrac(left) && isFrac(right)) {
+    const result = fracSum(left.pair(), right.pair());
+    return frac(result[0], result[1]);
+  }
+  // case: frac + int
+  if (isFrac(left) && isInt(right)) {
+    const result = fracSum([left.num, left.den], [right.value, 1]);
+    return frac(result[0], result[1]);
+  }
+  // case: int + frac
+  if (isInt(left) && isFrac(right)) {
+    const result = fracSum([right.num, right.den], [left.value, 1]);
+    return frac(result[0], result[1]);
+  }
+  // case: frac + float
+  if (isFrac(left) && isFloat(right)) {
+    const l = left.numeric;
+    const r = right.value;
+    return float(l + r);
+  }
+  // case: float + frac
+  if (isFloat(left) && isFrac(right)) {
+    const l = left.value;
+    const r = right.numeric;
+    return float(l + r);
+  }
+  // case: imaginary + int
+  if (isImaginary(left) && isInt(right)) {
+    return complex(right, left);
+  }
+  // case: int + imaginary
+  if (isInt(left) && isImaginary(right)) {
+    return complex(left, right);
+  }
+  // case: float + imaginary
+  if (isFloat(left) && isImaginary(right)) {
+    return complex(left, right);
+  }
+  // case: imaginary + float
+  if (isImaginary(left) && isFloat(right)) {
+    return complex(right, left);
+  }
+  // case: frac + imaginary
+  if (isFrac(left) && isImaginary(right)) {
+    return complex(left, right);
+  }
+  // case: imaginary + frac
+  if (isImaginary(left) && isFrac(right)) {
+    return complex(right, left);
+  }
+  // case: imaginary + imaginary
+  if (isImaginary(left) && isImaginary(right)) {
+    return im(addR2(left.value, right.value));
+  }
+  // case: complex + int
+  if (isComplex(left) && isInt(right)) {
+    return complex(addR2(left.real, right), left.imaginary);
+  }
+  // case: complex + float
+  if (isComplex(left) && isFloat(right)) {
+    return complex(addR2(left.real, right), left.imaginary);
+  }
+  // case: complex + frac
+  if (isComplex(left) && isFrac(right)) {
+    return complex(addR2(left.real, right), left.imaginary);
+  }
+  // complex + imaginary
+  if (isComplex(left) && isImaginary(right)) {
+    return complex(left.real, im(addR2(left.imaginary.value, right.value)));
+  }
+  // int + complex
+  if (isInt(left) && isComplex(right)) {
+    return complex(addR2(left, right.real), right.imaginary);
+  }
+  // float + complex
+  if (isFloat(left) && isComplex(right)) {
+    return complex(addR2(left, right.real), right.imaginary);
+  }
+  // frac + complex
+  if (isFrac(left) && isComplex(right)) {
+    return complex(addR2(left, right.real), right.imaginary);
+  }
+  // imaginary + complex
+  if (isImaginary(left) && isComplex(right)) {
+    return complex(right.real, im(addR2(right.imaginary.value, left.value)));
+  }
+  // complex + complex
+  if (isComplex(left) && isComplex(right)) {
+    return complex(
+      addR2(left.real, right.real),
+      im(addR2(left.imaginary.value, right.imaginary.value)),
+    );
+  }
+  throw glitch(
+    `Unhandled add2 case: ${left.kind} + ${right.kind}`,
+    "runtime-error",
+  );
+}
+
+/**
+ * Given two real numbers, `left` and `right`, returns
+ * `left - right`.
+ */
+function subR2(left: REAL, right: REAL): REAL {
+  // case int - int
+  if (isInt(left) && isInt(right)) {
+    return int(left.value - right.value);
+  }
+  // case float - int
+  if (isFloat(left) && isInt(right)) {
+    return float(left.value - right.value);
+  }
+  // case frac - int
+  if (isFrac(left) && isInt(right)) {
+    const result = fracMinus([left.num, left.den], [right.value, 1]);
+    return frac(result[0], result[1]);
+  }
+  // case: int - float
+  if (isInt(left) && isFloat(right)) {
+    return float(left.value - right.value);
+  }
+  // case: float - float
+  if (isFloat(left) && isFloat(right)) {
+    return float(left.value - right.value);
+  }
+  // case: frac - float
+  if (isFrac(left) && isFloat(right)) {
+    return float(left.numeric - right.numeric);
+  }
+  // case: int - frac
+  if (isInt(left) && isFrac(right)) {
+    const result = fracMinus([left.value, 1], [right.num, right.den]);
+    return frac(result[0], result[1]);
+  }
+  // case: float - frac
+  if (isFloat(left) && isFrac(right)) {
+    return float(left.numeric - right.numeric);
+  }
+  // case: frac - frac
+  if (isFrac(left) && isFrac(right)) {
+    const result = fracMinus(left.pair(), right.pair());
+    return frac(result[0], result[1]);
+  }
+  throw glitch(
+    `Unhandled case in subR2: ${left.kind} - ${right.kind}`,
+    "runtime-error",
+  );
+}
+
+/**
+ * Given two `NUMERIC` values, `left` and `right`,
+ * returns `left - right`.
+ */
+function sub2(left: NUMERIC, right: NUMERIC) {
+  // case real - real
+  if (isReal(left) && isReal(right)) {
+    return subR2(left, right);
+  }
+  // case: int - imaginary
+  if (isInt(left) && isImaginary(right)) {
+    return complex(left, im(right.value.negate()));
+  }
+  // case: float - imaginary
+  if (isFloat(left) && isImaginary(right)) {
+    return complex(left, im(right.value.negate()));
+  }
+  // case: frac - imaginary
+  if (isFrac(left) && isImaginary(right)) {
+    return complex(left, im(right.value.negate()));
+  }
+  // case: imaginary - int
+  // example: 3i - 4
+  // this is just -4 + 3i
+  if (isImaginary(left) && isInt(right)) {
+    return complex(right.negate(), left);
+  }
+  // case: imaginary - float
+  if (isImaginary(left) && isFloat(right)) {
+    return complex(right.negate(), left);
+  }
+  // case: imaginary - frac
+  if (isImaginary(left) && isFrac(right)) {
+    return complex(right.negate(), left);
+  }
+  // case: imaginary - imaginary
+  if (isImaginary(left) && isImaginary(right)) {
+    return im(subR2(left.value, right.value));
+  }
+  // case: complex - int
+  if (isComplex(left) && isInt(right)) {
+    return complex(subR2(left.real, right), left.imaginary);
+  }
+  // case: complex - float
+  if (isComplex(left) && isFloat(right)) {
+    return complex(subR2(left.real, right), left.imaginary);
+  }
+  // case: complex - frac
+  if (isComplex(left) && isFrac(right)) {
+    return complex(subR2(left.real, right), left.imaginary);
+  }
+  // case: complex - imaginary
+  if (isComplex(left) && isImaginary(right)) {
+    return complex(left.real, im(subR2(left.imaginary.value, right.value)));
+  }
+  // case: int - complex
+  if (isInt(left) && isComplex(right)) {
+    return complex(subR2(left, right.real), right.imaginary.negate());
+  }
+  // case: float - complex
+  if (isFloat(left) && isComplex(right)) {
+    return complex(subR2(left, right.real), right.imaginary.negate());
+  }
+  // case: frac - complex
+  if (isFrac(left) && isComplex(right)) {
+    return complex(subR2(left, right.real), right.imaginary.negate());
+  }
+  // case: imaginary - complex
+  if (isImaginary(left) && isComplex(right)) {
+    return complex(
+      right.real.negate(),
+      im(subR2(left.value, right.imaginary.value)),
+    );
+  }
+  // case: complex - complex
+  if (isComplex(left) && isComplex(right)) {
+    return complex(
+      subR2(left.real, right.real),
+      im(subR2(left.imaginary.value, right.imaginary.value)),
+    );
+  }
+  throw glitch(
+    `Unhandled subtraction case: ${left.kind} - ${right.kind}`,
+    "runtime-error",
+  );
+}
+
+class IMAGINARY extends EXPRESSION {
+  value: REAL;
+  sign: -1 | 1 | 0;
+  constructor(value: REAL) {
+    super("imaginary");
+    this.value = value;
+    this.sign = this.value.sign;
+  }
+  negate() {
+    return im(this.value.negate());
+  }
+  toString(): string {
+    return `${this.value}i`;
+  }
+}
+const im = (value: REAL) => new IMAGINARY(value);
+
+const isImaginary = (expr: EXPRESSION): expr is IMAGINARY =>
+  expr.kind === "imaginary";
+
+class COMPLEX extends EXPRESSION {
+  real: REAL;
+  imaginary: IMAGINARY;
+  constructor(real: REAL, imaginary: IMAGINARY) {
+    super("complex");
+    this.real = real;
+    this.imaginary = imaginary;
+  }
+  toString(): string {
+    const r = this.real.toString();
+    const op = this.imaginary.sign === -1 ? "-" : "+";
+    return `${r} ${op} ${Math.abs(this.imaginary.value.numeric)}i`;
+  }
+}
+
+const complex = (real: REAL, imaginary: IMAGINARY) =>
+  new COMPLEX(real, imaginary);
+
+const isComplex = (expr: EXPRESSION): expr is COMPLEX =>
+  expr.kind === "complex";
+
+class NIL extends EXPRESSION {
+  value = "nil" as const;
+  constructor() {
+    super("nil");
+  }
+  toString(): string {
+    return `nil`;
+  }
+}
+
+const nil = () => new NIL();
+const isNil = (x: EXPRESSION): x is NIL => x.kind === "nil";
+
+class STRING extends EXPRESSION {
+  value: string;
+  constructor(value: string) {
+    super("string");
+    this.value = value;
+  }
+  toString(): string {
+    return this.value;
+  }
+}
+
+const str = (value: string) => new STRING(value);
+const isStr = (x: EXPRESSION): x is STRING => x.kind === "string";
+
+class INDEFINITE extends EXPRESSION {
+  value = "indefinite" as const;
+  constructor() {
+    super("indefinite");
+  }
+  toString(): string {
+    return `indefinite`;
+  }
+}
+
+class UNKNOWN extends EXPRESSION {
+  value = "unknown" as const;
+  constructor() {
+    super("unknown");
+  }
+  toString(): string {
+    return this.value;
+  }
+}
+
+const unknown = () => new UNKNOWN();
+const isUnknown = (expr: EXPRESSION): expr is UNKNOWN =>
+  expr.kind === "unknown";
+
+class DIFF extends EXPRESSION {
+  args: [EXPRESSION, EXPRESSION];
+  constructor(left: EXPRESSION, right: EXPRESSION) {
+    super("difference");
+    this.args = [left, right];
+  }
+  get left() {
+    return this.args[0];
+  }
+  get right() {
+    return this.args[1];
+  }
+  toString(): string {
+    return `${this.left.toString()} - ${this.right.toString()}`;
+  }
+}
+
+const diff = (left: EXPRESSION, right: EXPRESSION) => new DIFF(left, right);
+const isDiff = (x: EXPRESSION): x is DIFF => x.kind === "difference";
+
+class SUM extends EXPRESSION {
+  args: EXPRESSION[];
+  constructor(args: EXPRESSION[]) {
+    super("sum");
+    this.args = args;
+  }
+  toString(): string {
+    const args = this.args.map((x) => x.toString());
+    return args.join(" + ");
+  }
+}
+
+const sum = (args: EXPRESSION[]) => new SUM(args);
+const isSum = (x: EXPRESSION): x is SUM => x.kind === "sum";
+
+class QUOT extends EXPRESSION {
+  args: [EXPRESSION, EXPRESSION];
+  constructor(left: EXPRESSION, right: EXPRESSION) {
+    super("quotient");
+    this.args = [left, right];
+  }
+  get left() {
+    return this.args[0];
+  }
+  get right() {
+    return this.args[1];
+  }
+  toString(): string {
+    return `${this.left.toString()} / ${this.right.toString()}`;
+  }
+}
+
+class PRODUCT extends EXPRESSION {
+  args: EXPRESSION[];
+  constructor(args: EXPRESSION[]) {
+    super("product");
+    this.args = args;
+  }
+  toString(): string {
+    const args = this.args.map((x) => x.toString());
+    return args.join(" * ");
+  }
+}
+
+const prod = (args: EXPRESSION[]) => new PRODUCT(args);
+const isProd = (x: EXPRESSION): x is PRODUCT => x.kind === "product";
+
+class POWER extends EXPRESSION {
+  args: [EXPRESSION, EXPRESSION];
+  constructor(base: EXPRESSION, exponent: EXPRESSION) {
+    super("power");
+    this.args = [base, exponent];
+  }
+  get base() {
+    return this.args[0];
+  }
+  get exponent() {
+    return this.args[1];
+  }
+  toString(): string {
+    return `${this.base.toString()}^${this.exponent.toString()}`;
+  }
+}
+
+const power = (base: EXPRESSION, exponent: EXPRESSION) =>
+  new POWER(base, exponent);
+const isPower = (x: EXPRESSION): x is POWER => x.kind === "power";
+
+class SYMBOL extends EXPRESSION {
+  sym: string;
+  value: EXPRESSION;
+  constructor(sym: string, value: EXPRESSION = unknown()) {
+    super("symbol");
+    this.sym = sym;
+    this.value = value;
+  }
+  val(x: EXPRESSION) {
+    this.value = x;
+    return this;
+  }
+  toString(): string {
+    return this.sym;
+  }
+}
+
+const sym = (s: string) => new SYMBOL(s);
+const isSym = (x: EXPRESSION): x is SYMBOL => x.kind === "symbol";
+
+class NEG extends EXPRESSION {
+  arg: EXPRESSION;
+  constructor(arg: EXPRESSION) {
+    super("negate");
+    this.arg = arg;
+  }
+  toString(): string {
+    return `-${this.arg.toString()}`;
+  }
+}
+
+const neg = (arg: EXPRESSION) => new NEG(arg);
+const isNeg = (expr: EXPRESSION): expr is NEG => expr.kind === "negate";
+
+class BOOL extends EXPRESSION {
+  value: boolean;
+  constructor(value: boolean) {
+    super("bool");
+    this.value = value;
+  }
+  toString(): string {
+    return `${this.value}`;
+  }
+}
+
+const bool = (value: boolean) => new BOOL(value);
+const isBool = (x: EXPRESSION): x is BOOL => x.kind === "bool";
 
 type NumericConstant =
   | "pi"
@@ -1460,9 +2465,11 @@ interface Visitor<T> {
   integer(node: Integer): T;
   float(node: Float): T;
   frac(node: Frac): T;
+  imaginary(node: ImaginaryExpression): T;
   nil(node: Nil): T;
   str(node: Str): T;
   bool(node: Bool): T;
+  indefinite(node: Indefinite): T;
   constant(node: ConstExpression): T;
   algebraicBinex(node: AlgebraicBinex): T;
   logicalBinex(node: LogicalBinex): T;
@@ -1479,12 +2486,18 @@ interface Visitor<T> {
   vector(node: VectorLiteral): T;
   matrix(node: MatrixLiteral): T;
   set(node: SetLiteral): T;
+  tuple(node: TupleLiteral): T;
   functionCall(node: FunctionCall): T;
+  index(node: IndexingExpression): T;
   factorial(node: FactorialExpression): T;
   exprStmt(node: ExpressionStatement): T;
   varDeclaration(node: VarDeclaration): T;
   block(node: BlockStatement): T;
   functionStatement(node: FunctionStatement): T;
+  ifStatement(node: IfStatement): T;
+  returnStatement(node: ReturnStatement): T;
+  whileStatement(node: WhileStatement): T;
+  printStatement(node: PrintStatement): T;
 }
 
 /** An enum corresponding to a nodes kind. */
@@ -1495,11 +2508,13 @@ enum Nodekind {
   nil,
   str,
   frac,
+  imaginary,
   algebraic_binex,
   logical_binex,
   relation,
   sym,
   bool,
+  indefinite,
   parend,
   nan,
   inf,
@@ -1511,14 +2526,20 @@ enum Nodekind {
   vector,
   matrix,
   set,
+  tuple_literal,
   factorial,
   function_call,
+  indexing_expression,
 
   // statement nodekinds
   expression_statement,
   variable_declaration,
   block_statement,
   function_statement,
+  if_statement,
+  return_statement,
+  while_statement,
+  print_statement,
 }
 
 /** An object representing an AST node. */
@@ -1944,6 +2965,26 @@ class FactorialExpression extends Expression {
   }
 }
 
+class Indefinite extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.indefinite(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.indefinite;
+  }
+  toString(): string {
+    return `indefinite`;
+  }
+  _value = "indefinite" as const;
+  constructor() {
+    super();
+  }
+}
+
+const indefinite = () => new INDEFINITE();
+const isIndefinite = (expr: EXPRESSION): expr is INDEFINITE =>
+  expr.kind === "indefinite";
+
 /** An object representing an assignment expression. */
 class Assignment extends Expression {
   accept<T>(visitor: Visitor<T>): T {
@@ -1963,6 +3004,23 @@ class Assignment extends Expression {
     super();
     this._sym = sym;
     this._value = value;
+  }
+}
+
+class TupleLiteral extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.tuple(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.tuple_literal;
+  }
+  toString(): string {
+    return this._tuple.map((e) => e.toString()).join(", ");
+  }
+  _tuple: LinkedList<Expression>;
+  constructor(tuple: LinkedList<Expression>) {
+    super();
+    this._tuple = tuple;
   }
 }
 
@@ -2057,6 +3115,52 @@ class FunctionCall extends Expression {
   }
 }
 
+/** An object corresponding to an indexing expression AST node. */
+class IndexingExpression extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.index(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.indexing_expression;
+  }
+  toString(): string {
+    const L = this._list.toString();
+    const i = this._index.toString();
+    return `${L}[${i}]`;
+  }
+  _op: Token;
+  _list: Expression;
+  _index: Expression;
+  constructor(op: Token, list: Expression, index: Expression) {
+    super();
+    this._op = op;
+    this._list = list;
+    this._index = index;
+  }
+}
+
+class ImaginaryExpression extends Expression {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.imaginary(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.imaginary;
+  }
+  toString(): string {
+    throw new Error("Method not implemented.");
+  }
+  _constant: Integer | Float | Frac;
+  _im: Token<TokenName.imaginary>;
+  constructor(
+    constant: Integer | Float | Frac,
+    im: Token<TokenName.imaginary>,
+  ) {
+    super();
+    this._constant = constant;
+    this._im = im;
+  }
+}
+
 /** An object representing a statement. */
 abstract class Statement extends ASTNode {
   isStatement(): this is Statement {
@@ -2137,15 +3241,106 @@ class FunctionStatement extends Statement {
   _name: Token<TokenName.symbol>;
   _params: SymExpression[];
   _body: Statement[];
+  _inline: boolean;
   constructor(
     name: Token<TokenName.symbol>,
     params: SymExpression[],
     body: Statement[],
+    inline: boolean,
   ) {
     super();
     this._name = name;
     this._params = params;
     this._body = body;
+    this._inline = inline;
+  }
+}
+
+/** An ASTNode corresponding to a conditional statement. */
+class IfStatement extends Statement {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.ifStatement(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.if_statement;
+  }
+  toString(): string {
+    return `if-statement`;
+  }
+  _keyword: Token;
+  _condition: Expression;
+  _then: Statement;
+  _else: Statement;
+  constructor(
+    keyword: Token,
+    condition: Expression,
+    then: Statement,
+    _else: Statement,
+  ) {
+    super();
+    this._keyword = keyword;
+    this._condition = condition;
+    this._then = then;
+    this._else = _else;
+  }
+}
+
+/** An object corresponding to a Return Statement ASTNode. */
+class ReturnStatement extends Statement {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.returnStatement(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.return_statement;
+  }
+  toString(): string {
+    return `return-statement`;
+  }
+  _keyword: Token;
+  _value: Expression;
+  constructor(keyword: Token, value: Expression) {
+    super();
+    this._keyword = keyword;
+    this._value = value;
+  }
+}
+
+/** An object corresponding to a while statement ASTNode. */
+class WhileStatement extends Statement {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.whileStatement(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.while_statement;
+  }
+  toString(): string {
+    return `while-statement`;
+  }
+  _keyword: Token;
+  _condition: Expression;
+  _body: Statement;
+  constructor(keyword: Token, condition: Expression, body: Statement) {
+    super();
+    this._keyword = keyword;
+    this._condition = condition;
+    this._body = body;
+  }
+}
+
+class PrintStatement extends Statement {
+  accept<T>(visitor: Visitor<T>): T {
+    return visitor.printStatement(this);
+  }
+  kind(): Nodekind {
+    return Nodekind.print_statement;
+  }
+  toString(): string {
+    return "print-statement";
+  }
+  _target: Expression;
+  constructor(target: Expression) {
+    super();
+    this._target = target;
   }
 }
 
@@ -2158,6 +3353,10 @@ const astnode = {
   nil: () => new Nil(),
   str: (s: string) => new Str(s),
   frac: (n: number, d: number) => new Frac(n, d),
+  imaginary: (
+    constant: Integer | Frac | Float,
+    im: Token<TokenName.imaginary>,
+  ) => new ImaginaryExpression(constant, im),
   algBinex: (
     left: Expression,
     op: Token<BinaryAlgebraicOperator>,
@@ -2199,6 +3398,7 @@ const astnode = {
   vector: (op: Token, elements: Expression[]) =>
     new VectorLiteral(op, elements),
   set: (op: Token, elements: Expression[]) => new SetLiteral(op, elements),
+  tuple: (tuple: LinkedList<Expression>) => new TupleLiteral(tuple),
   matrix: (
     op: Token,
     vectors: VectorLiteral[],
@@ -2208,6 +3408,8 @@ const astnode = {
   factorial: (op: Token, arg: Expression) => new FactorialExpression(op, arg),
   functionCall: (paren: Token, callee: Expression, args: Expression[]) =>
     new FunctionCall(callee, paren, args),
+  index: (op: Token, list: Expression, index: Expression) =>
+    new IndexingExpression(op, list, index),
   statement: {
     expression: (e: Expression) => new ExpressionStatement(e),
     varDeclaration: (sym: Token<TokenName.symbol>, value: Expression) =>
@@ -2217,7 +3419,19 @@ const astnode = {
       name: Token<TokenName.symbol>,
       params: SymExpression[],
       body: Statement[],
-    ) => new FunctionStatement(name, params, body),
+      inline: boolean,
+    ) => new FunctionStatement(name, params, body, inline),
+    if: (
+      keyword: Token,
+      condition: Expression,
+      then: Statement,
+      _else: Statement,
+    ) => new IfStatement(keyword, condition, then, _else),
+    return: (keyword: Token, value: Expression) =>
+      new ReturnStatement(keyword, value),
+    while: (keyword: Token, condition: Expression, body: Statement) =>
+      new WhileStatement(keyword, condition, body),
+    print: (target: Expression) => new PrintStatement(target),
   },
 };
 
@@ -2356,7 +3570,7 @@ function syn(tokens: Token[]) {
       return left(state._error);
     } else {
       return state.error(
-        `Unexpected lexeme: ${token._lexeme}`,
+        `Unexpected lexeme: ${token.toString()}`,
         token._line,
         token._column,
       );
@@ -2456,10 +3670,18 @@ function syn(tokens: Token[]) {
     // Handle floating point numbers
     if (t.isNamed(TokenName.float) || t.isNamed(TokenName.integer)) {
       // @ts-expect-error The logic is sound; too much work to work with the typechecker.
-      const out = t.isNamed(TokenName.integer)
+      const out: Right<Integer | Float> = t.isNamed(TokenName.integer)
         ? state.expression(astnode.int(t._literal as number))
         : state.expression(astnode.float(t._literal as number));
       // Handle implicit multiplication
+      if (state.nextIs(TokenName.imaginary)) {
+        return state.expression(
+          astnode.imaginary(
+            out.unwrap(),
+            token(TokenName.imaginary, "i", state._prevLine, state._prevColumn),
+          ),
+        );
+      }
       const peek = state._peek;
       if (
         peek.isNamed(TokenName.left_paren) ||
@@ -2548,6 +3770,14 @@ function syn(tokens: Token[]) {
         `Encountered a 0 denominator in a fraction`,
         t._line,
         t._column,
+      );
+    }
+    if (state.nextIs(TokenName.imaginary)) {
+      return state.expression(
+        astnode.imaginary(
+          astnode.frac(numerator, denominator),
+          token(TokenName.imaginary, "i", state._prevLine, state._prevColumn),
+        ),
       );
     }
     return state.expression(astnode.frac(numerator, denominator));
@@ -2701,12 +3931,47 @@ function syn(tokens: Token[]) {
     return state.expression(astnode.functionCall(paren, callee, args));
   };
 
+  const indexingExpression = (op: Token, list: Expression) => {
+    const index = expression();
+    if (index.isLeft()) return index;
+    const rbracket = state.next();
+    if (!rbracket.isNamed(TokenName.right_bracket)) {
+      return state.error(
+        `Expected a closing "]"`,
+        rbracket._line,
+        rbracket._column,
+      );
+    }
+    return state.expression(astnode.index(op, list, index.unwrap()));
+  };
+
   /** Parses a parenthesized expression. */
   const parenthesized = (t: Token) => {
     const innerExpression = expression();
     if (innerExpression.isLeft()) {
       return innerExpression;
     }
+    // if the next expression is a comma, then this is a tuple,
+    // and we should parse it as such.
+    if (state.nextIs(TokenName.comma)) {
+      const elements = [innerExpression.unwrap()];
+      do {
+        const e = expression();
+        if (e.isLeft()) return e;
+        const element = e.unwrap();
+        elements.push(element);
+      } while (state.nextIs(TokenName.comma) && !state.atEnd());
+      const list = linkedList(...elements);
+      if (!state.nextIs(TokenName.right_paren)) {
+        return state.error(
+          `Expected a ")" to close the tuple.`,
+          t._line,
+          t._column,
+        );
+      }
+      return state.expression(astnode.tuple(list));
+    }
+    // Otherwise, we should parse it as a parenthesized expression.
     if (!state.nextIs(TokenName.right_paren)) {
       return state.error(`Expected a closing ")".`, t._line, t._column);
     }
@@ -2760,12 +4025,21 @@ function syn(tokens: Token[]) {
     );
   };
 
+  const imaginary = (op: Token) => {
+    return state.expression(
+      astnode.imaginary(
+        astnode.int(1),
+        token(TokenName.imaginary, "i", op._line, op._column),
+      ),
+    );
+  };
+
   const rules: BPTable<Expression> = {
     [TokenName.left_paren]: [parenthesized, functionCall, BP.function_call],
     [TokenName.right_paren]: [___, ___, ___o],
     [TokenName.left_brace]: [set, ___, BP.set],
     [TokenName.right_brace]: [___, ___, ___o],
-    [TokenName.left_bracket]: [vector, ___, BP.function_call],
+    [TokenName.left_bracket]: [vector, indexingExpression, BP.function_call],
     [TokenName.right_bracket]: [___, ___, ___o],
     [TokenName.comma]: [___, ___, ___o],
     [TokenName.colon]: [___, ___, ___o],
@@ -2820,6 +4094,7 @@ function syn(tokens: Token[]) {
     [TokenName.integer]: [number, ___, BP.atom],
     [TokenName.float]: [number, ___, BP.atom],
     [TokenName.fraction]: [frac, ___, BP.atom],
+    [TokenName.imaginary]: [imaginary, ___, BP.atom],
     [TokenName.nil]: [nil, ___, BP.atom],
     [TokenName.bool]: [bool, ___, BP.atom],
     [TokenName.nan]: [nan, ___, BP.atom],
@@ -2847,9 +4122,11 @@ function syn(tokens: Token[]) {
     [TokenName.return]: [___, ___, ___o],
     [TokenName.super]: [___, ___, ___o],
     [TokenName.this]: [___, ___, ___o],
-    [TokenName.var]: [___, ___, ___o],
+    [TokenName.let]: [___, ___, ___o],
     [TokenName.const]: [___, ___, ___o],
     [TokenName.fn]: [___, ___, ___o],
+    [TokenName.while]: [___, ___, ___o],
+    [TokenName.print]: [___, ___, ___o],
     [TokenName.eof]: [___, ___, ___o],
     [TokenName.newline]: [___, ___, ___o],
   };
@@ -2951,6 +4228,7 @@ function syn(tokens: Token[]) {
             name,
             params.map((s) => astnode.sym(s)),
             [b],
+            true,
           ),
         ),
       );
@@ -2977,6 +4255,7 @@ function syn(tokens: Token[]) {
           name,
           params.map((p) => astnode.sym(p)),
           b._statements,
+          false,
         ),
       ),
     );
@@ -3041,15 +4320,111 @@ function syn(tokens: Token[]) {
     }
   };
 
+  /** Parses a return statement. */
+  const RETURN = () => {
+    const c = state._peek.clone();
+    const out = EXPRESSION();
+    return out.chain((e) => state.statement(astnode.statement.return(c, e)));
+  };
+
+  /** Parses an if statement. */
+  const IF = () => {
+    const keyword = state._peek.clone();
+    const c = expression();
+    if (c.isLeft()) return c;
+    const condition = c.unwrap();
+    if (!state.nextIs(TokenName.colon)) {
+      return state.error(
+        `Expected a ":" to begin the consequent block`,
+        state._currentLine,
+        state._currentColumn,
+      );
+    }
+    state.nextIs(TokenName.newline);
+    const consequent = STATEMENT();
+    if (consequent.isLeft()) return consequent;
+    const thenBranch = consequent.unwrap();
+    let elseBranch: Statement = astnode.statement.return(
+      token(
+        TokenName.return,
+        "return",
+        state._currentLine,
+        state._currentColumn,
+      ),
+      astnode.nil(),
+    );
+    if (state.nextIs(TokenName.else)) {
+      if (!state.nextIs(TokenName.colon)) {
+        return state.error(
+          `Expected a ":" to begin the else block`,
+          state._currentLine,
+          state._currentColumn,
+        );
+      }
+      state.nextIs(TokenName.newline);
+      const alternate = STATEMENT();
+      if (alternate.isLeft()) return alternate;
+      elseBranch = alternate.unwrap();
+    }
+    return state.statement(
+      astnode.statement.if(keyword, condition, thenBranch, elseBranch),
+    );
+  };
+
+  const WHILE = () => {
+    const current = state._peek.clone();
+    const loopCondition = expression();
+    if (loopCondition.isLeft()) return loopCondition;
+    const condition = loopCondition.unwrap();
+    if (!state.nextIs(TokenName.colon)) {
+      return state.error(
+        `Expected a ":" to begin the while loop's body`,
+        state._currentLine,
+        state._currentColumn,
+      );
+    }
+    state.nextIs(TokenName.newline);
+    const body = STATEMENT();
+    if (body.isLeft()) return body;
+    return state.statement(
+      astnode.statement.while(current, condition, body.unwrap()),
+    );
+  };
+
+  const PRINT = () => {
+    const target = expression();
+    if (target.isLeft()) return target;
+    if (state.nextIs(TokenName.semicolon) || state.nextIs(TokenName.newline)) {
+      return state.statement(astnode.statement.print(target.unwrap()));
+    }
+    return state.error(
+      `Expected a newline or semicolon to end the print statement`,
+      state._currentLine,
+      state._currentColumn,
+    );
+  };
+
   const STATEMENT = (): Either<Glitch, Statement> => {
-    if (state.nextIs(TokenName.var)) {
+    if (state.nextIs(TokenName.let)) {
       return VAR_DECLARATION();
+    }
+    if (state.nextIs(TokenName.while)) {
+      return WHILE();
     }
     if (state.nextIs(TokenName.fn)) {
       return FUNCTION_DECLARATION();
     }
+    if (state.nextIs(TokenName.return)) {
+      return RETURN();
+    }
+    if (state.nextIs(TokenName.if)) {
+      return IF();
+    }
     if (state.nextIs(TokenName.indent)) {
       return BLOCK();
+    }
+    if (state.nextIs(TokenName.print)) {
+      return PRINT();
     }
     return EXPRESSION();
   };
@@ -3072,7 +4447,197 @@ function syn(tokens: Token[]) {
   return parse();
 }
 
+class Interpreter implements Visitor<EXPRESSION> {
+  resolveConstants: boolean = true;
+  interpret(program: Statement[]) {
+    try {
+      let result: EXPRESSION = nil();
+      for (let i = 0; i < program.length; i++) {
+        result = this.evalStatement(program[i]);
+      }
+      return result;
+    } catch (error) {
+      if (error instanceof Glitch) {
+        return error.report();
+      }
+      return (error as Error).message;
+    }
+  }
+  private evalStatement(node: Statement): EXPRESSION {
+    return node.accept(this);
+  }
+  private evaluate(expression: Expression): EXPRESSION {
+    return expression.accept(this);
+  }
+  integer(node: Integer): EXPRESSION {
+    return int(node._value);
+  }
+  float(node: Float): EXPRESSION {
+    return float(node._value);
+  }
+  frac(node: Frac): EXPRESSION {
+    return frac(node._numerator, node._denominator);
+  }
+  nil(node: Nil): EXPRESSION {
+    return nil();
+  }
+  imaginary(node: ImaginaryExpression): EXPRESSION {
+    const result = this.evaluate(node._constant);
+    if (isInt(result) || isFloat(result) || isFrac(result)) {
+      if (result.isZero()) {
+        return int(0);
+      }
+      return im(result);
+    }
+    throw glitch(
+      `Expected a numeric constant for the imaginary number`,
+      "runtime-error",
+    );
+  }
+  str(node: Str): EXPRESSION {
+    return str(node._value);
+  }
+  bool(node: Bool): EXPRESSION {
+    return bool(node._value);
+  }
+  indefinite(node: Indefinite): EXPRESSION {
+    return indefinite();
+  }
+  constant(node: ConstExpression): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  algebraicBinex(node: AlgebraicBinex): EXPRESSION {
+    const left = this.evaluate(node._left);
+    const right = this.evaluate(node._right);
+		// handle addition
+    if (node._op.isNamed(TokenName.plus)) {
+      if (isNumeric(left) && isNumeric(right)) {
+        return add2(left, right);
+      }
+      // unresolved symbol + something => sum
+      if (isSym(left)) {
+        return sum([left, right]);
+      }
+      // something + unresolved symbol
+      if (isSym(right)) {
+        return sum([right, left]);
+      }
+      throw glitch(
+        `Invalid sum: ${left.kind} + ${right.kind}`,
+        "runtime-error",
+      );
+    }
+		// handle subtraction
+    if (node._op.isNamed(TokenName.minus)) {
+			if (isNumeric(left) && isNumeric(right)) {
+				return sub2(left, right);
+			}
+      throw glitch(
+        `Unhandled subtraction case: ${left.kind} - ${right.kind}`,
+        "runtime-error",
+      );
+    }
+    throw glitch(
+      `Unsupported operation: ${node._op._lexeme}`,
+      "runtime-error",
+      node._op._line,
+      node._op._column,
+    );
+  }
+  logicalBinex(node: LogicalBinex): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  relation(node: RelationExpr): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  sym(node: SymExpression): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  nan(node: NaNLiteral): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  inf(node: InfLiteral): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  negate(node: Negation): EXPRESSION {
+    const arg = this.evaluate(node._arg);
+    if (isReal(arg)) {
+      return arg.negate();
+    }
+    if (isImaginary(arg)) {
+      return im(arg.value.negate());
+    }
+    if (isComplex(arg)) {
+      return complex(arg.real.negate(), arg.imaginary.negate());
+    }
+    throw glitch(`Unhandled case: -${arg.kind}`, "runtime-error");
+  }
+  parend(node: ParenthesizedExpression): EXPRESSION {
+    return this.evaluate(node._expression);
+  }
+  conditional(node: Conditional): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  concatenation(node: Concatenation): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  vectorBinex(node: VectorBinex): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  assignment(node: Assignment): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  vector(node: VectorLiteral): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  matrix(node: MatrixLiteral): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  set(node: SetLiteral): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  tuple(node: TupleLiteral): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  functionCall(node: FunctionCall): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  index(node: IndexingExpression): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  factorial(node: FactorialExpression): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  exprStmt(node: ExpressionStatement): EXPRESSION {
+    return this.evaluate(node._expression);
+  }
+  varDeclaration(node: VarDeclaration): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  block(node: BlockStatement): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  functionStatement(node: FunctionStatement): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  ifStatement(node: IfStatement): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  returnStatement(node: ReturnStatement): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  whileStatement(node: WhileStatement): EXPRESSION {
+    throw new Error("Method not implemented.");
+  }
+  printStatement(node: PrintStatement): EXPRESSION {
+    const value = this.evaluate(node._target).toString();
+    console.log(value);
+    return str(value);
+  }
+}
+
 function weaver(sourceCode: string) {
+  const interpreter = new Interpreter();
   const lexical = () => {
     const tokens = lex(sourceCode);
     if (tokens instanceof Glitch) {
@@ -3092,7 +4657,10 @@ function weaver(sourceCode: string) {
     return ast;
   };
   const run = () => {
-    return syntax();
+    const ast = syntax();
+    if (ast.isLeft()) return ast.unwrap().report();
+    const result = interpreter.interpret(ast.unwrap());
+    return result;
   };
   return {
     lexical,
@@ -3102,9 +4670,6 @@ function weaver(sourceCode: string) {
 }
 
 const r = weaver(`
-if x < 2:
-  x = 5
-else
-  y = 10
+(4 + 2i) - (3 - 2i)
 `).run();
-print(r);
+print(r.toString());

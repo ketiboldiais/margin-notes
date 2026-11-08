@@ -14,6 +14,8 @@ Writing a programming language is time consuming. The field is littered with tim
   - [The Identifier Parenthesis Case](#the-identifier-parenthesis-case)
   - [The Parenthesis-Parenthesis Case](#the-parenthesis-parenthesis-case)
   - [Parenthesis-Identifier](#parenthesis-identifier)
+  - [Number-number](#number-number)
+  - [Identifier-Number](#identifier-number)
 
 </TOC>
 
@@ -113,8 +115,25 @@ $$
     \fbox{\lpar} ~ \fbox{expression} ~ \fbox{\rpar} ~ \fbox{symbol}
 $$
 
-For example: ${(x + 1)y.}$ This one's an unambiguous case for implicit multiplication. 
+For example: ${(x + 1)y.}$ This one's an unambiguous case for implicit multiplication. There aren't other ways for interpreting something that looks like ${(x + 1)y.}$
 
+### Number-number
+This pattern takes the form:
+
+$$
+    \fbox{number} ~ \fbox{number}
+$$
+
+For example: ${2 ~ 3.}$ We could interpret this as implicit multiplication, but it's not a good idea. It's not used in mathematical convention, and it almost certainly should be interpreted as a writing error. 
+
+### Identifier-Number
+This pattern shouldn't be supported:
+
+$$
+    \fbox{symbol} ~ \fbox{number}
+$$
+
+This leads to interpreting something like ${x2}$ as a product, ${x \times 2.}$ This is not used in mathematical convention, and it also complicates the use of identifiers ending with numbers. The expressions like `x2`, `y2`, `z2`, etc. are found extensively in computer graphics code bases to denote the subscripted variables ${x_2,}$ ${y_2,}$ ${z_2,}$ and so on.  
 
 export default function MDXPage({ children }) {
     return <MdxLayout>{children}</MdxLayout>

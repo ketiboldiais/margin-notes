@@ -33,21 +33,20 @@ This page outlines LEM's development process.
     - [_`Glitch`_`.type(𝑡)`](#glitchtype𝑡)
   - [`GlitchType`](#glitchtype)
   - [`glitch(𝑚,𝑡,ℓ,𝑐)`](#glitch𝑚𝑡ℓ𝑐)
-- [Utilities](#utilities)
-  - [`print(𝑠)`](#print𝑠)
 - [Parsing](#parsing)
   - [Abstract Syntax Trees](#abstract-syntax-trees)
-    - [`ASTNode`](#astnode)
-      - [_`ASTNode`_.`accept(𝑣)`](#astnodeaccept𝑣)
-      - [_`ASTNode`_.`kind()`](#astnodekind)
-    - [Visitors](#visitors)
-    - [`NodeKind`](#nodekind)
-- [Nil](#nil)
-- [Integers](#integers)
-- [Floating Point Numbers](#floating-point-numbers)
-- [Strings](#strings)
-- [Algebraic Binary Expressions](#algebraic-binary-expressions)
-- [Logical Binary Expressions](#logical-binary-expressions)
+- [Utilities](#utilities)
+  - [`print(𝑠)`](#print𝑠)
+  - [Utility Type: Option](#utility-type-option)
+- [Operators](#operators)
+  - [Binary Algebraic Operators](#binary-algebraic-operators)
+  - [Addition](#addition)
+  - [Subtraction](#subtraction)
+- [Num](#num)
+  - [`gcd(𝑎,𝑏)`](#gcd𝑎𝑏)
+  - [`simplestFraction(𝑎,𝑏)`](#simplestfraction𝑎𝑏)
+  - [`bigSign(𝑥)`](#bigsign𝑥)
+  - [`bigAbs(𝑥)`](#bigabs𝑥)
 
 
 </TOC>
@@ -151,6 +150,12 @@ This function creates and returns a new [`Glitch`](#glitch-objects). The functio
 3. `ℓ`: The line where the `Glitch` occurred.
 4. `𝑐`: The column where the `Glitch` occurred.
 
+## Parsing
+Once Weaver has scanned the LEM source code, the generated tokens are sent to the parser. The parser takes these tokens and constructs an _abstract syntax tree_ (_AST_). The AST, at the highest level, is a sequence of statements.
+
+### Abstract Syntax Trees
+A successful parsing of LEM code yields an __abstract syntax tree__ `(`__AST__`)`. This is a tree constructed of __AST nodes__. This section explains the various AST nodes used by Weaver to constuct an AST.
+
 ## Utilities
 Within LEM's source code are several utilities. This section documents those utilities.
 
@@ -181,79 +186,74 @@ print({
    └─ z: 6
 ~~~
 
-## Parsing
-Once Weaver has scanned the LEM source code, the generated tokens are sent to the parser. The parser takes these tokens and constructs an _abstract syntax tree_ (_AST_). The AST, at the highest level, is a sequence of statements.
+### Utility Type: Option
+Within LEM's source code, you'll find that some functions return the type `Some<T>` or `None`, where `T` is some arbitrary type. LEM takes a functional approach to dealing with potential absences of values. In general: 
 
-### Abstract Syntax Trees
-A successful parsing of LEM code yields an __abstract syntax tree__ `(`__AST__`)`. This is a tree constructed of __AST nodes__. This section explains the various AST nodes used by Weaver to constuct an AST.
+$$
+  \texttt{Option<𝑥>} = \texttt{Some<𝑥>} ~|~ \texttt{None} 
+$$
 
-#### `ASTNode`
-AST nodes are represented by objects defined by the `ASTNode` class. This is an abstract class with the following abstract methods.
+## Operators
+### Binary Algebraic Operators
+During syntax analysis, the following operators are treated as binary algebraic operators:
 
-1. __`accept`__`(𝑣)`
-2. __`kind`__`()`
-3. __`toString`__`()`
-4. __`isStatement`__`()`
-5. __`isExpression`__`()`
-6. __`obj`__`()`
+| Operator  | Lexeme |
+| --------- | ------ |
+| `plus`    | `+`    |
+| `minus`   | `-`    |
+| `slash`   | `/`    |
+| `star`    | `*`    |
+| `percent` | `%`    |
+| `caret`   | `^`    |
+| `mod`     | `mod`  |
+| `rem`     | `rem`  |
 
-We explain each method in the following sections.
+### Addition
+The `+` operator performs basic algebraic addition. The following type rules apply.
 
-##### _`ASTNode`_.`accept(𝑣)`
-Given a [`Visitor`](#visitors) of type 𝑇, returns a result of type 𝑇.
+| `+`         | `int`     | `float`   | `frac`    | `imaginary` | `complex` |
+| ----------- | --------- | --------- | --------- | ----------- | --------- |
+| `int`       | `int`     | `float`   | `frac`    | `complex`   | `complex` |
+| `float`     | `float`   | `float`   | `float`   | `complex`   | `complex` |
+| `frac`      | `frac`    | `float`   | `frac`    | `complex`   | `complex` |
+| `imaginary` | `complex` | `complex` | `complex` | `imaginary` | `complex` |
+| `complex`   | `complex` | `complex` | `complex` | `complex`   | `complex` |
 
-##### _`ASTNode`_.`kind()`
-If called, returns the `ASTNode`'s [`NodeKind`](#nodekind).
+If either the left or right operands are unresolved symbols, the result is a sum.
 
-#### Visitors
-#### `NodeKind`
+### Subtraction
 
-## Nil
-The `nil` value corresponds to the intentional absence of value.
+| `-`         | `int`     | `float`   | `frac`    | `imaginary` | `complex` |
+| ----------- | --------- | --------- | --------- | ----------- | --------- |
+| `int`       | `int`     | `float`   | `frac`    | `complex`   | `complex` |
+| `float`     | `float`   | `float`   | `float`   | `complex`   | `complex` |
+| `frac`      | `frac`    | `float`   | `frac`    | `complex`   | `complex` |
+| `imaginary` | `complex` | `complex` | `complex` | `imaginary` | `complex` |
+| `complex`   | `complex` | `complex` | `complex` | `complex`   | ``        |
 
-## Integers
-An integer in LEM is any number that satisfies the following rules:  
+## Num
+### `gcd(𝑎,𝑏)`
+Given two numbers ${a}$ and ${b,}$ returns the greatest common divisor of ${a}$ and ${b.}$
 
-1. Zero, or
-2. a combination of digits ${0}$ through ${9,}$ not starting with ${0.}$
+### `simplestFraction(𝑎,𝑏)`
+Given the fraction ${a/b,}$ returns ${n/m,}$ where ${n/m}$ is the simplest form of ${a/b.}$ The returned value is a pair ${\lbracket n, m \rbracket.}$
 
-## Floating Point Numbers
-A floating point number in LEM is any number that satisfies the following rules:
+### `bigSign(𝑥)`
+Returns the sign of the given `bigint` ${x}$ as one of the `bigint`s ${1,}$ ${-1,}$ or ${0.}$
 
-1. Starts with [integer](#integers), followed by a dot `(.)`, followed by an [integer](#integers).
-2. Starts with a dot `(.)` followed by an [integer](#integers). 
+$$
+\texttt{bigSign}(x) = 
+  \begin{cases}
+    -1 & \text{if} ~~ x ~\lt~ 0 \\
+    1 & \text{if} ~~ x ~\gt~ 0 \\
+    0 & \text{else}
+  \end{cases}
+$$
 
-## Strings
-A string in LEM is any expression surrounded by double quotes `(")`.
+### `bigAbs(𝑥)`
+Returns the absolute value of the given `bigint` ${x.}$
 
-## Algebraic Binary Expressions
-An _algebraic binary expression_ is one of the following expressions.
 
-Where `𝑢` and `𝑣` are expressions,
-
-1. __Sum expression__. An expression of the form `𝑢 + 𝑣`.
-2. __Difference expression__. An expression of the form `𝑢 - 𝑣`. 
-3. __Product expression__. An expression of the form `𝑢 * 𝑣`.
-4. __Quotient expression__. An expression of the form `𝑢 / 𝑣`.
-5. __Power expression__. An expression of the form `𝑢^𝑣`.
-
-LEM considers the operators `+`, `-`, `*`, `/`, and `^` as binary algebraic operators. Within the source code, the tokens corresponding to these operators form a union type `BinaryAlgebraicOperator`.  
-
-## Logical Binary Expressions
-A _logical binary expression_ is one of the following expressions. 
-
-Where `𝑝` and `𝑞` are expressions:
-
-1. __Conjunction__. An expression of the form `𝑝 and 𝑞`.
-2. __Nonconjunction__. An expression of the form `𝑝 nand 𝑞`.
-3. __Disjunction__. An expression of the form `𝑝 or 𝑞`.
-4. __Nondisjunction__. An expression of the form `𝑝 nor 𝑞`.
-5. __Exclusive disjunction__. An expression of the form `𝑝 xor 𝑞`.
-6. __Implication__. An expression of the form `𝑝 -> 𝑞`.
-7. __Nonimplication__. An expression of the form `𝑝 !-> 𝑞`.
-8. __Converse__. An expression of the form `𝑝 <- 𝑞`.
-9. __Nonconverse__. An expression of the form `𝑝 !<- 𝑞`.
-10. __Biconditional__. An expression of the form `𝑝 <-> 𝑞`.
 
 export default function MDXPage({ children }) {
     return <MdxLayout>{children}</MdxLayout>
