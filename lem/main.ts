@@ -746,7 +746,7 @@ function fracEqual(a: [number, number], b: [number, number]) {
 }
 
 /** Returns the product of a * b, where a and b are fractions. */
-function fracTimes(a: [number, number], b: [number, number]): [number, number] {
+function fracMul(a: [number, number], b: [number, number]): [number, number] {
   return simplestFraction(a[0] * b[0], a[1] * b[1]);
 }
 
@@ -1904,6 +1904,7 @@ class FRAC extends REAL {
 }
 
 const frac = (n: number, d: number) => new FRAC(n, d);
+const fraction = (numDen: [number, number]) => new FRAC(numDen[0], numDen[1]);
 const isFrac = (x: EXPRESSION): x is FRAC => x.kind === "fraction";
 
 type NUMERIC = REAL | IMAGINARY | COMPLEX;
@@ -1937,17 +1938,23 @@ function addR2(left: REAL, right: REAL): REAL {
   // case: frac + frac
   if (isFrac(left) && isFrac(right)) {
     const result = fracSum(left.pair(), right.pair());
-    return frac(result[0], result[1]);
+    const out = frac(result[0], result[1]);
+    if (out.den === 1) return int(out.num);
+    return out;
   }
   // case: frac + int
   if (isFrac(left) && isInt(right)) {
     const result = fracSum([left.num, left.den], [right.value, 1]);
-    return frac(result[0], result[1]);
+    const out = frac(result[0], result[1]);
+    if (out.den === 1) return int(out.num);
+    return out;
   }
   // case: int + frac
   if (isInt(left) && isFrac(right)) {
     const result = fracSum([right.num, right.den], [left.value, 1]);
-    return frac(result[0], result[1]);
+    const out = frac(result[0], result[1]);
+    if (out.den === 1) return int(out.num);
+    return out;
   }
   // case: frac + float
   if (isFrac(left) && isFloat(right)) {
@@ -2101,7 +2108,9 @@ function subR2(left: REAL, right: REAL): REAL {
   // case frac - int
   if (isFrac(left) && isInt(right)) {
     const result = fracMinus([left.num, left.den], [right.value, 1]);
-    return frac(result[0], result[1]);
+    const out = frac(result[0], result[1]);
+    if (out.den === 1) return int(out.num);
+    return out;
   }
   // case: int - float
   if (isInt(left) && isFloat(right)) {
@@ -2118,7 +2127,9 @@ function subR2(left: REAL, right: REAL): REAL {
   // case: int - frac
   if (isInt(left) && isFrac(right)) {
     const result = fracMinus([left.value, 1], [right.num, right.den]);
-    return frac(result[0], result[1]);
+    const out = frac(result[0], result[1]);
+    if (out.den === 1) return int(out.num);
+    return out;
   }
   // case: float - frac
   if (isFloat(left) && isFrac(right)) {
@@ -2127,7 +2138,9 @@ function subR2(left: REAL, right: REAL): REAL {
   // case: frac - frac
   if (isFrac(left) && isFrac(right)) {
     const result = fracMinus(left.pair(), right.pair());
-    return frac(result[0], result[1]);
+    const out = frac(result[0], result[1]);
+    if (out.den === 1) return int(out.num);
+    return out;
   }
   throw glitch(
     `Unhandled case in subR2: ${left.kind} - ${right.kind}`,
@@ -2218,6 +2231,171 @@ function sub2(left: NUMERIC, right: NUMERIC) {
   }
   throw glitch(
     `Unhandled subtraction case: ${left.kind} - ${right.kind}`,
+    "runtime-error",
+  );
+}
+
+/**
+ * Given two `REAL` numbers `left` and `right`,
+ * returns the `REAL` product `left * right`.
+ */
+function mulR2(left: REAL, right: REAL): REAL {
+  // case: int * int
+  if (isInt(left) && isInt(right)) {
+    return int(left.value * right.value);
+  }
+  // case: float * int
+  if (isFloat(left) && isInt(right)) {
+    return float(left.value * right.value);
+  }
+  // case: frac * int
+  if (isFrac(left) && isInt(right)) {
+    const out = fraction(fracMul(left.pair(), [right.value, 1]));
+    if (out.den === 1) return int(out.num);
+    return out;
+  }
+  // case: int * float
+  if (isInt(left) && isFloat(right)) {
+    return float(left.value * right.value);
+  }
+  // case: float * float
+  if (isFloat(left) && isFloat(right)) {
+    return float(left.value * right.value);
+  }
+  // case: frac * float
+  if (isFrac(left) && isFloat(right)) {
+    return float(left.numeric * right.value);
+  }
+  // case: int * frac
+  if (isInt(left) && isFrac(right)) {
+    const out = fraction(fracMul([left.value, 1], right.pair()));
+    if (out.den === 1) return int(out.num);
+    return out;
+  }
+  // case: float * frac
+  if (isFloat(left) && isFrac(right)) {
+    return float(left.value * right.numeric);
+  }
+  // case: frac * frac
+  if (isFrac(left) && isFrac(right)) {
+    const out = fraction(fracMul(left.pair(), right.pair()));
+    if (out.den === 1) return int(out.num);
+    return out;
+  }
+  throw glitch(
+    `Unhandled mulR2 case: ${left.kind} * ${right.kind}`,
+    "runtime-error",
+  );
+}
+
+/**
+ * Given two `NUMERIC` values, `left` and `right`,
+ * returns `left * right`.
+ */
+function mul2(left: NUMERIC, right: NUMERIC): NUMERIC {
+  if (isReal(left) && isReal(right)) {
+    return mulR2(left, right);
+  }
+  // case: imaginary * int
+  if (isImaginary(left) && isInt(right)) {
+    return im(mulR2(right, left.value));
+  }
+  // case: imaginary * float
+  if (isImaginary(left) && isFloat(right)) {
+    return im(mulR2(right, left.value));
+  }
+  // case: imaginary * frac
+  if (isImaginary(left) && isFrac(right)) {
+    return im(mulR2(right, left.value));
+  }
+  // case: int * imaginary
+  if (isInt(left) && isImaginary(right)) {
+    return im(mulR2(left, right.value));
+  }
+  // case: float * imaginary
+  if (isFloat(left) && isImaginary(right)) {
+    return im(mulR2(left, right.value));
+  }
+  // case: frac * imaginary
+  if (isFrac(left) && isImaginary(right)) {
+    return im(mulR2(left, right.value));
+  }
+  // case: imaginary * imaginary
+  if (isImaginary(left) && isImaginary(right)) {
+    return mulR2(left.value, right.value).negate();
+  }
+  // case: int * complex
+  if (isInt(left) && isComplex(right)) {
+    return complex(
+      mulR2(left, right.real),
+      im(mulR2(left, right.imaginary.value)),
+    );
+  }
+  // case: complex * int
+  if (isComplex(left) && isInt(right)) {
+    return complex(
+      mulR2(right, left.real),
+      im(mulR2(right, left.imaginary.value)),
+    );
+  }
+  // case: complex * float
+  if (isComplex(left) && isFloat(right)) {
+    return complex(
+      mulR2(right, left.real),
+      im(mulR2(right, left.imaginary.value)),
+    );
+  }
+  // case: complex * frac
+  if (isComplex(left) && isFrac(right)) {
+    return complex(
+      mulR2(right, left.real),
+      im(mulR2(right, left.imaginary.value)),
+    );
+  }
+  // case: float * complex
+  if (isFloat(left) && isComplex(right)) {
+    return complex(
+      mulR2(left, right.real),
+      im(mulR2(left, right.imaginary.value)),
+    );
+  }
+  // case: frac * complex
+  if (isFrac(left) && isComplex(right)) {
+    return complex(
+      mulR2(left, right.real),
+      im(mulR2(left, right.imaginary.value)),
+    );
+  }
+  // case: imaginary * complex
+  if (isImaginary(left) && isComplex(right)) {
+    return complex(
+      mulR2(right.imaginary.value, left.value).negate(),
+      im(mulR2(right.real, left.value)),
+    );
+  }
+  // case: complex * imaginary
+  if (isComplex(left) && isImaginary(right)) {
+    return complex(
+      mulR2(left.imaginary.value, right.value).negate(),
+      im(mulR2(left.real, right.value)),
+    );
+  }
+  // case: complex * complex
+  if (isComplex(left) && isComplex(right)) {
+    const a = left.real;
+    const b = left.imaginary.value;
+    const c = right.real;
+    const d = right.imaginary.value;
+    const ac = mulR2(a, c);
+    const bd = mulR2(b, d);
+    const ad = mulR2(a, d);
+    const bc = mulR2(b, c);
+    const ac_bd = subR2(ac, bd);
+    const ad_bc = addR2(ad, bc);
+    return complex(ac_bd, im(ad_bc));
+  }
+  throw glitch(
+    `Unhandled case in mul2: ${left.kind} * ${right.kind}`,
     "runtime-error",
   );
 }
@@ -4509,7 +4687,7 @@ class Interpreter implements Visitor<EXPRESSION> {
   algebraicBinex(node: AlgebraicBinex): EXPRESSION {
     const left = this.evaluate(node._left);
     const right = this.evaluate(node._right);
-		// handle addition
+    // handle addition
     if (node._op.isNamed(TokenName.plus)) {
       if (isNumeric(left) && isNumeric(right)) {
         return add2(left, right);
@@ -4527,13 +4705,39 @@ class Interpreter implements Visitor<EXPRESSION> {
         "runtime-error",
       );
     }
-		// handle subtraction
+    // handle subtraction
     if (node._op.isNamed(TokenName.minus)) {
-			if (isNumeric(left) && isNumeric(right)) {
-				return sub2(left, right);
-			}
+      if (isNumeric(left) && isNumeric(right)) {
+        return sub2(left, right);
+      }
+      // unresolved symbol - something => difference
+      if (isSym(left)) {
+        return diff(left, right);
+      }
+      // something - unresolved symbol => difference
+      if (isSym(right)) {
+        return diff(left, right);
+      }
       throw glitch(
         `Unhandled subtraction case: ${left.kind} - ${right.kind}`,
+        "runtime-error",
+      );
+    }
+		// handle multiplication
+    if (node._op.isNamed(TokenName.star)) {
+      if (isNumeric(left) && isNumeric(right)) {
+        return mul2(left, right);
+      }
+      // unresolved symbol - something => difference
+      if (isSym(left)) {
+        return prod([left, right]);
+      }
+      // something - unresolved symbol => difference
+      if (isSym(right)) {
+        return prod([left, right]);
+      }
+      throw glitch(
+        `Unhandled multiplication case: ${left.kind} - ${right.kind}`,
         "runtime-error",
       );
     }
@@ -4670,6 +4874,6 @@ function weaver(sourceCode: string) {
 }
 
 const r = weaver(`
-(4 + 2i) - (3 - 2i)
+(3 + 4i) * (2 + 5i)
 `).run();
 print(r.toString());

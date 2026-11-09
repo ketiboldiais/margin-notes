@@ -42,6 +42,7 @@ This page outlines LEM's development process.
   - [Binary Algebraic Operators](#binary-algebraic-operators)
   - [Addition](#addition)
   - [Subtraction](#subtraction)
+  - [Multiplication](#multiplication)
 - [Num](#num)
   - [`gcd(𝑎,𝑏)`](#gcd𝑎𝑏)
   - [`simplestFraction(𝑎,𝑏)`](#simplestfraction𝑎𝑏)
@@ -211,25 +212,38 @@ During syntax analysis, the following operators are treated as binary algebraic 
 ### Addition
 The `+` operator performs basic algebraic addition. The following type rules apply.
 
-| `+`         | `int`     | `float`   | `frac`    | `imaginary` | `complex` |
+| `+`         | `INT`     | `FLOAT`   | `FRAC`    | `IMAGINARY` | `COMPLEX` |
 | ----------- | --------- | --------- | --------- | ----------- | --------- |
-| `int`       | `int`     | `float`   | `frac`    | `complex`   | `complex` |
-| `float`     | `float`   | `float`   | `float`   | `complex`   | `complex` |
-| `frac`      | `frac`    | `float`   | `frac`    | `complex`   | `complex` |
-| `imaginary` | `complex` | `complex` | `complex` | `imaginary` | `complex` |
-| `complex`   | `complex` | `complex` | `complex` | `complex`   | `complex` |
+| `INT`       | `INT`     | `FLOAT`   | `FRAC`    | `COMPLEX`   | `COMPLEX` |
+| `FLOAT`     | `FLOAT`   | `FLOAT`   | `FLOAT`   | `COMPLEX`   | `COMPLEX` |
+| `FRAC`      | `FRAC`    | `FLOAT`   | `FRAC`    | `COMPLEX`   | `COMPLEX` |
+| `IMAGINARY` | `COMPLEX` | `COMPLEX` | `COMPLEX` | `IMAGINARY` | `COMPLEX` |
+| `COMPLEX`   | `COMPLEX` | `COMPLEX` | `COMPLEX` | `COMPLEX`   | `COMPLEX` |
 
 If either the left or right operands are unresolved symbols, the result is a sum.
 
 ### Subtraction
+The `-` operation performs basic algebraic subtraction. The following type rules apply.
 
-| `-`         | `int`     | `float`   | `frac`    | `imaginary` | `complex` |
+| `-`         | `INT`     | `FLOAT`   | `FRAC`    | `IMAGINARY` | `COMPLEX` |
 | ----------- | --------- | --------- | --------- | ----------- | --------- |
-| `int`       | `int`     | `float`   | `frac`    | `complex`   | `complex` |
-| `float`     | `float`   | `float`   | `float`   | `complex`   | `complex` |
-| `frac`      | `frac`    | `float`   | `frac`    | `complex`   | `complex` |
-| `imaginary` | `complex` | `complex` | `complex` | `imaginary` | `complex` |
-| `complex`   | `complex` | `complex` | `complex` | `complex`   | ``        |
+| `INT`       | `INT`     | `FLOAT`   | `FRAC`    | `COMPLEX`   | `COMPLEX` |
+| `FLOAT`     | `FLOAT`   | `FLOAT`   | `FLOAT`   | `COMPLEX`   | `COMPLEX` |
+| `FRAC`      | `FRAC`    | `FLOAT`   | `FRAC`    | `COMPLEX`   | `COMPLEX` |
+| `IMAGINARY` | `COMPLEX` | `COMPLEX` | `COMPLEX` | `IMAGINARY` | `COMPLEX` |
+| `COMPLEX`   | `COMPLEX` | `COMPLEX` | `COMPLEX` | `COMPLEX`   | `COMPLEX` |
+
+### Multiplication
+The `*` operation performs basic algebraic multiplication. The following type rules apply.
+
+
+| `*`         | `INT`       | `FLOAT`     | `FRAC`      | `IMAGINARY` | `COMPLEX` |
+| ----------- | ----------- | ----------- | ----------- | ----------- | --------- |
+| `INT`       | `INT`       | `FLOAT`     | `FRAC`      | `IMAGINARY` | `COMPLEX`        |
+| `FLOAT`     | `FLOAT`     | `FLOAT`     | `FLOAT`     | `IMAGINARY` | `COMPLEX`        |
+| `FRAC`      | `FRAC`      | `FLOAT`     | `FRAC`      | `IMAGINARY` | `COMPLEX`        |
+| `IMAGINARY` | `IMAGINARY` | `IMAGINARY` | `IMAGINARY` | `REAL`      | `COMPLEX` |
+| `COMPLEX`   | `COMPLEX`   | `COMPLEX`   | `COMPLEX`   | `COMPLEX`   | ``        |
 
 ## Num
 ### `gcd(𝑎,𝑏)`
